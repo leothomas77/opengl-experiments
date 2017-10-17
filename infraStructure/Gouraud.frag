@@ -1,8 +1,8 @@
-#version 450 core
+#version 120
 
-precision mediump float;
+// precision mediump float;
 
-in vec4 vColor; 	
+varying vec4 vColor; 	
 
 void main(void) {
 	

@@ -1,16 +1,16 @@
-#version 450 core
+#version 120
 
-precision mediump float; 
+// precision mediump float; 
 
 uniform vec3 uLPos;
 uniform vec3 uCamPos;
 
-in vec3 vNormal; 
-in vec3 vPosW;
+varying vec3 vNormal; 
+varying vec3 vPosW;
 
 void main(void) {
-	vec4 lColor		= vec4(1.0, 1.0, 1.0, 1.0); 
-	vec4 matAmb		= vec4(0.1, 0.1, 0.1, 1.0); 
+	vec4 lColor		= vec4(1.0, 0.3, 0.2, 0.2); 
+	vec4 matAmb		= vec4(1.0, 1.0, 1.0, 0.5); 
 	vec4 matDif 	= vec4(0.3, 1.0, 0.6, 1.0); 
 	vec4 matSpec	= vec4(1.0, 1.0, 1.0, 1.0);
 	

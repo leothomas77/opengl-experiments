@@ -1,7 +1,7 @@
-#version 450 core
+#version 120
 
-in vec3 aPosition;
-in vec3 aNormal;
+attribute vec3 aPosition;
+attribute vec3 aNormal;
 
 uniform mat4 uM;
 uniform mat4 uN;
@@ -10,7 +10,7 @@ uniform mat4 uMVP;
 uniform vec3 uLPos;
 uniform vec3 uCamPos;
 	
-out vec4 vColor; 
+varying vec4 vColor; 
 	
 void main(void) { 
 	vec4 lColor		= vec4(1.0, 1.0, 1.0, 1.0); 

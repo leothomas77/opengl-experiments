@@ -1,0 +1,49 @@
+.SUFFIXES: .c .cc .cpp .cxx .h
+
+# compiler names:
+CXX		= g++ 
+CC		= gcc
+
+# flags for C++ compiler:
+CFLAGS		= -g -Wno-deprecated  
+CXXFLAGS	= -g -Wno-deprecated  
+
+# libraries to link with:
+
+INCPATH			=	-I/opt/local/include 
+LIB_PATH 		=	-L/opt/local/lib
+
+GL_LDFLAGS 		=	-framework OpenGL -lGLEW
+GLFW_LDFLAGS 	=	-lglfw
+GLUT_LDFLAGS 	=	-framework GLUT
+ASSIMP_LDFLAGS 	=	-lassimp
+
+OBJFILES 	=	initShaders.o
+
+# compile rules
+.c.o:	$*.h
+	@echo "Compiling C code ...."
+	$(CC) -o $*.o -c $(CXXFLAGS) $(INC_PATH) $*.c
+
+.cpp.o:	$*.h
+	@echo "Compiling C++ code ...."
+	$(CXX) -o $*.o -c $(CXXFLAGS) $(INC_PATH) $*.cpp
+
+# ***********************************************************************************
+all:	glfwBasic drawCube load3DModel
+
+glfwBasic:	glfwBasic.o
+	@echo "Linking ...."
+	g++ -o $@ $^ $(LIB_PATH) $(GL_LDFLAGS) $(GLFW_LDFLAGS)
+	
+drawCube:	 $(OBJFILES) drawCube.o
+	@echo "Linking ...."
+	$(CXX) $^ -o $@ $(LIB_PATH) $(GL_LDFLAGS) $(GLFW_LDFLAGS) 
+		
+load3DModel:	$(OBJFILES) load3DModel.o
+	@echo "Linking ...."
+	$(CXX) $^ -o $@ $(LIB_PATH) $(GL_LDFLAGS) $(GLFW_LDFLAGS) $(ASSIMP_LDFLAGS)
+		
+clean:	
+	@echo "Clearing ..."
+	rm -f *.o core *.*~ *~ glfwBasic drawCube glfw drawCube load3DModel

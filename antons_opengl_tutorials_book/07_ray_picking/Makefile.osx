@@ -1,0 +1,12 @@
+BIN = raypick
+CC = g++
+FLAGS = -g -Wno-deprecated -Wall -pedantic -mmacosx-version-min=10.12 -arch x86_64 -fmessage-length=0 -UGLFW_CDECL -lglfw3
+INC = -I/usr/local/include
+LIB = -L/usr/local/lib
+FRAMEWORKS	=  -framework OpenGL -lGLEW -framework CoreVideo -framework Cocoa -framework IOKit
+
+SRC = main.cpp gl_utils.cpp maths_funcs.cpp obj_parser.cpp
+
+all:
+	${CC} ${FLAGS} ${FRAMEWORKS} -o ${BIN} ${SRC} ${INC} ${LIB}
+

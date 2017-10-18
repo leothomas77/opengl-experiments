@@ -19,6 +19,7 @@
 #include <GLFW/glfw3.h>
 
 #include "initShaders.h"
+#include "raycasting.h"
 
 #ifndef BUFFER_OFFSET 
 	#define BUFFER_OFFSET(i) ((char *)NULL + (i))
@@ -51,8 +52,8 @@ int winWidth 	= 600,
 
 float 	angleX 	= 	0.0f,
 		angleY	= 	0.0f,
-		angleZ	=	0.0f;
-
+		angleZ	=	0.0f,
+		distanciaCamera = 5.0f;
 
 /* the global Assimp scene object */
 const aiScene* scene = NULL;
@@ -305,30 +306,55 @@ int attrV, attrC, attrN;
 
 void display(void) {
 
-	angleY += 0.02;
+//	angleY += 0.02;
 
 	float Max = max(scene_max.x, max(scene_max.y, scene_max.z));
 
-	glm::vec3 lightPos	= glm::vec3(Max, Max, 0.0);	
-	glm::vec3 camPos	= glm::vec3(1.5f*Max,  1.5f*Max, 1.5f*Max);
+// Posiciona a luz
+	glm::vec3 lightPos	= glm::vec3(Max, Max, 0.0);
+//Posiciona a camera		
+	glm::vec3 camPos	= glm::vec3(distanciaCamera * Max,  distanciaCamera * Max, distanciaCamera * Max);
+//Posiciona a direcao da camera	
 	glm::vec3 lookAt	= glm::vec3(scene_center.x, scene_center.y, scene_center.z);
+//Posiciona orientacao da camera	
 	glm::vec3 up		= glm::vec3(0.0, 1.0, 0.0);
-		
+//Cria a matriz de transformacao do ponto de vista		
 	glm::mat4 ViewMat	= glm::lookAt( 	camPos, 
 										lookAt, 
 										up);
-
+//Cria a matriz de transfornacao da perspectiva
 	glm::mat4 ProjMat 	= glm::perspective( 70.0, 1.0, 0.01, 100.0);
+//Cria a matriz de posicionamento do modelo
 	glm::mat4 ModelMat 	= glm::mat4(1.0);
 
 	ModelMat = glm::rotate( ModelMat, angleX, glm::vec3(1.0, 0.0, 0.0));
 	ModelMat = glm::rotate( ModelMat, angleY, glm::vec3(0.0, 1.0, 0.0));
 	ModelMat = glm::rotate( ModelMat, angleZ, glm::vec3(0.0, 0.0, 1.0));
-
+//Unifica as 3 matrizes em uma 
 	glm::mat4 MVP 			= ProjMat * ViewMat * ModelMat;
-	
+//Cria a matriz das normais
 	glm::mat4 normalMat		= glm::transpose(glm::inverse(ModelMat));
 
+//Inicia o tracado de raios de cada ponto da tela ate o objeto
+	for (int x = 0; x < winWidth; x++) {
+		for (int y = 0; y < winHeight; y++) {
+			glm::vec3 raio = calcularRaio(origemRaio, direcaoRaio);
+			
+			glm::vec3 intersecao = tracarRaio(raio, objeto);
+			
+			glm::vec3 cor = shade(raio, intersecao);
+		}
+
+	} 
+
+	shade(lightPos, camPos, MVP, normalMat, ModelMat);
+
+  	drawAxis();
+
+ 	drawMesh();
+}
+
+void shade(glm::vec3 lightPos, glm::vec3 camPos, glm::mat4 MVP, glm::mat4 normalMat, glm::mat4 ModelMat) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(shader);
@@ -346,10 +372,6 @@ void display(void) {
 		loc = glGetUniformLocation( shader, "uCamPos" );
 		glUniform3fv(loc, 1, glm::value_ptr(camPos));
 		}
-
-  	drawAxis();
-
- 	drawMesh();
 }
 
 /* ************************************************************************* */
@@ -405,7 +427,8 @@ static void error_callback(int error, const char* description) {
 /* ************************************************************************* */
 
 static void window_size_callback(GLFWwindow* window, int width, int height) {
-        
+    winWidth  = width;
+	winHeight = height;    
 	glViewport(0, 0, width, height);
 }
 
@@ -563,7 +586,7 @@ int main(int argc, char *argv[]) {
 
     GLFWwindow* window;
 
-	char meshFilename[] = "objs/bunny.obj";
+	char meshFilename[] = "objs/sphere.obj";
 
     window = initGLFW(argv[0], winWidth, winHeight);
 
@@ -586,3 +609,5 @@ int main(int argc, char *argv[]) {
 
     exit(EXIT_SUCCESS);
 }
+
+

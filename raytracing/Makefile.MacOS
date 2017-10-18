@@ -19,7 +19,7 @@ GLUT_LDFLAGS 	=	-framework GLUT
 MACOS_LDFLAGS	=   	-framework CoreVideo -framework Cocoa -framework IOKit
 ASSIMP_LDFLAGS 	=	-lassimp
 
-OBJFILES 	=	initShaders.o
+OBJFILES 	=	initShaders.o raycasting.o
 
 # compile rules
 .c.o:	$*.h

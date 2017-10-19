@@ -20,6 +20,7 @@
 
 #include "initShaders.h"
 #include "raycasting.h"
+#include "objetos.h"
 
 #ifndef BUFFER_OFFSET 
 	#define BUFFER_OFFSET(i) ((char *)NULL + (i))
@@ -31,6 +32,8 @@
 	#define MAX(x,y) (y>x?y:x)
 #endif
 
+#define MAX_INTERSECOES 10
+#define MAX_RECURSOES	5
 
 using namespace std;
 
@@ -40,7 +43,9 @@ GLuint 	shaderAmbient,
 		shader;
 GLuint 	axisVBO[3];
 GLuint 	meshVBO[3];
+GLuint 	pontosVBO[3];
 GLuint 	meshSize;
+
 
 double  last;
 
@@ -60,6 +65,7 @@ float 	angleX 	= 	0.0f,
 const aiScene* scene = NULL;
 GLuint scene_list = 0;
 aiVector3D scene_min, scene_max, scene_center;
+
 
 /* ---------------------------------------------------------------------------- */
 void get_bounding_box_for_node	(	const struct aiNode* nd,
@@ -301,7 +307,7 @@ int attrV, attrC, attrN;
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
 }
 
-void drawPoint() {
+void desenhaPonto(float *pontos, int quantidade) {
 
 int attrV, attrC, attrN; 
 	
@@ -320,7 +326,7 @@ int attrV, attrC, attrN;
 	glVertexAttribPointer(attrN, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(attrN);
 
-	glDrawArrays(GL_POINT, 0, meshSize); 
+	glDrawArrays(GL_POINT, 0, quantidade); 
 
 	glDisableVertexAttribArray(attrV);
 	glDisableVertexAttribArray(attrC);
@@ -358,9 +364,10 @@ void display(void) {
 //Cria a matriz de posicionamento do modelo
 	glm::mat4 ModelMat 	= glm::mat4(1.0);
 
-	ModelMat = glm::rotate( ModelMat, angleX, glm::vec3(1.0, 0.0, 0.0));
-	ModelMat = glm::rotate( ModelMat, angleY, glm::vec3(0.0, 1.0, 0.0));
-	ModelMat = glm::rotate( ModelMat, angleZ, glm::vec3(0.0, 0.0, 1.0));
+//Rotacao do modelo (movimentacao da cena)
+	// ModelMat = glm::rotate( ModelMat, angleX, glm::vec3(1.0, 0.0, 0.0));
+	// ModelMat = glm::rotate( ModelMat, angleY, glm::vec3(0.0, 1.0, 0.0));
+	// ModelMat = glm::rotate( ModelMat, angleZ, glm::vec3(0.0, 0.0, 1.0));
 //Unifica as 3 matrizes em uma 
 	glm::mat4 MVP 			= ProjMat * ViewMat * ModelMat;
 //Cria a matriz das normais
@@ -369,19 +376,35 @@ void display(void) {
 //Inicia o tracado de raios de cada ponto da tela ate o objeto
 	glm::vec3 origemRaio, direcaoRaio;
 	
+	//TODO inicializar matrix de transformacao Camera -> Mundo
 	glm::mat4x4 cameraMundo = glm::mat4x4(0);
+
 	origemRaio = glm::vec3(0.0, 0.0, 0.0);
-	int objeto = 0;
+	std::vector<ObjetoImplicito *> objetos;
+
+	objetos.push_back(new Esfera(0.2, glm::vec3(0.0, 0.0, 0.0)));
+	GLfloat intersecoes[MAX_INTERSECOES];
+	int contIntersecoes = 0;
 	for (int x = 0; x < winWidth; x++) {
 		for (int y = 0; y < winHeight; y++) {
-			direcaoRaio = glm::normalize(glm::vec3(x, y, -1)) - origemRaio;
-			direcaoRaio = glm::normalize(direcaoRaio);			
-			int t = INFINITY;
-			bool tocou = tracarRaio(origemRaio, direcaoRaio, t);
-			glm::vec3 cor = glm::vec3(0, 0, 0);// cor de BACKGROUND
-			if (tocou) {
-				shade(origemRaio, direcaoRaio, t);
 
+    		for (unsigned k = 0; k < objetos.size(); k++) {
+
+				//TODO transformacao para ponto do mundo real?
+				direcaoRaio = glm::normalize(glm::vec3(x, y, -1)) - origemRaio;
+				direcaoRaio = glm::normalize(direcaoRaio);			
+				int t = INFINITO;
+				bool tocou = tracarRaio(origemRaio, direcaoRaio, t, objetos[k]);
+				glm::vec3 cor = glm::vec3(0, 0, 0);// cor de BACKGROUND
+				if (tocou) {
+					//TODO guarda as intessecoes no buffer para chamar o shader de 1 vez so?
+					intersecoes[contIntersecoes] = t;
+					if (contIntersecoes >= MAX_INTERSECOES) {
+						shade(origemRaio, direcaoRaio, t);
+						contIntersecoes = 0;
+					}
+					contIntersecoes++;
+				}
 			}
 		}
 

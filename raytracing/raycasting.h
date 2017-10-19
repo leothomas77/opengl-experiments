@@ -12,10 +12,13 @@
 #include <glm/mat4x4.hpp> 
 #include <glm/gtc/matrix_transform.hpp> 
 #include <glm/gtc/type_ptr.hpp> 
+#include "raycasting.h"
+#include "objetos.h"
+
 /*
 Funcoes para implementacao da tecnica de renderizacao por raycasting
 */
-bool tracarRaio(glm::vec3 origem, glm::vec3 posicao, float t);
+bool tracarRaio(glm::vec3 origem, glm::vec3 posicao, float t, ObjetoImplicito *objeto);
 void moveCamera();
 void moveObject();
 void shade(glm::vec3 origemRaio, glm::vec3 direcaoRaio, float t);

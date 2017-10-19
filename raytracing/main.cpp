@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <cfloat>
 #include <vector>
@@ -301,6 +300,36 @@ int attrV, attrC, attrN;
 	glBindBuffer(GL_ARRAY_BUFFER, 0); 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
 }
+
+void drawPoint() {
+
+int attrV, attrC, attrN; 
+	
+	glBindBuffer(GL_ARRAY_BUFFER, meshVBO[0]); 		
+	attrV = glGetAttribLocation(shader, "aPosition");
+	glVertexAttribPointer(attrV, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(attrV);
+
+	glBindBuffer(GL_ARRAY_BUFFER, meshVBO[1]); 		
+	attrC = glGetAttribLocation(shader, "aColor");
+	glVertexAttribPointer(attrC, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(attrC);
+
+	glBindBuffer(GL_ARRAY_BUFFER, meshVBO[2]); 		
+	attrN = glGetAttribLocation(shader, "aNormal");
+	glVertexAttribPointer(attrN, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(attrN);
+
+	glDrawArrays(GL_POINT, 0, meshSize); 
+
+	glDisableVertexAttribArray(attrV);
+	glDisableVertexAttribArray(attrC);
+	glDisableVertexAttribArray(attrN);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0); 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
+}
+
 		
 /// ***********************************************************************
 /// **
@@ -340,29 +369,29 @@ void display(void) {
 //Inicia o tracado de raios de cada ponto da tela ate o objeto
 	glm::vec3 origemRaio, direcaoRaio;
 	
-	glm::mat4x4 cameraMundo = glm:mat4x4(0);
+	glm::mat4x4 cameraMundo = glm::mat4x4(0);
 	origemRaio = glm::vec3(0.0, 0.0, 0.0);
 	int objeto = 0;
 	for (int x = 0; x < winWidth; x++) {
 		for (int y = 0; y < winHeight; y++) {
-			direcaoRaio = glm:normalise(glm:vec3(x, y, -1)) - origemRaio;
-			direcaoRaio = glm:normalise(direcaoRaio);
-			glm::vec3 raio = calcularRaio(origemRaio, direcaoRaio);
-			
+			direcaoRaio = glm::normalize(glm::vec3(x, y, -1)) - origemRaio;
+			direcaoRaio = glm::normalize(direcaoRaio);			
 			int t = INFINITY;
-			int t = tracarRaio(raio, objeto);
-			if ()
-			
-			glm::vec3 cor = shade(raio, intersecao);
+			bool tocou = tracarRaio(origemRaio, direcaoRaio, t);
+			glm::vec3 cor = glm::vec3(0, 0, 0);// cor de BACKGROUND
+			if (tocou) {
+				shade(origemRaio, direcaoRaio, t);
+
+			}
 		}
 
 	} 
 
-	shade(lightPos, camPos, MVP, normalMat, ModelMat);
+	//shade(lightPos, camPos, MVP, normalMat, ModelMat);
 
-  	drawAxis();
+  	//drawAxis();
 
- 	drawMesh();
+ 	//drawMesh();
 }
 
 void shade(glm::vec3 lightPos, glm::vec3 camPos, glm::mat4 MVP, glm::mat4 normalMat, glm::mat4 ModelMat) {

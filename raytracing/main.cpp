@@ -34,6 +34,7 @@
 
 #define MAX_INTERSECOES 10
 #define MAX_RECURSOES	5
+#define BACKGROUND	0;
 
 using namespace std;
 
@@ -307,11 +308,10 @@ int attrV, attrC, attrN;
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
 }
 
-void desenhaPonto(float *pontos, int quantidade) {
+void desenhaBuffer(glm::vec3 pixels) {
 
-int attrV, attrC, attrN; 
 	
-	glBindBuffer(GL_ARRAY_BUFFER, meshVBO[0]); 		
+	glBindBuffer(GL_ARRAY_BUFFER, pixels.get); 		
 	attrV = glGetAttribLocation(shader, "aPosition");
 	glVertexAttribPointer(attrV, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(attrV);
@@ -381,30 +381,38 @@ void display(void) {
 
 	origemRaio = glm::vec3(0.0, 0.0, 0.0);
 	std::vector<ObjetoImplicito *> objetos;
+	std::vector<glm::vec3> pixelTela;
 
-	objetos.push_back(new Esfera(0.2, glm::vec3(0.0, 0.0, 0.0)));
-	GLfloat intersecoes[MAX_INTERSECOES];
-	int contIntersecoes = 0;
+	objetos.push_back(new Esfera(0.2, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
+//	GLfloat intersecoes[MAX_INTERSECOES];
+//	int contIntersecoes = 0;
+    float invWidth = 1 / float(winWidth), invHeight = 1 / float(winHeight);
+    float fov = 30, aspectratio = winWidth / float(winHeight);
+    float angulo = tan(M_PI * 0.5 * fov / 180.);
+
 	for (int x = 0; x < winWidth; x++) {
 		for (int y = 0; y < winHeight; y++) {
 
+  			float xTransformada = (2 * ((x + 0.5) * invWidth) - 1) * angulo * aspectratio;
+            float yTransformada = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
+          
     		for (unsigned k = 0; k < objetos.size(); k++) {
 
-				//TODO transformacao para ponto do mundo real?
-				direcaoRaio = glm::normalize(glm::vec3(x, y, -1)) - origemRaio;
-				direcaoRaio = glm::normalize(direcaoRaio);			
-				int t = INFINITO;
-				bool tocou = tracarRaio(origemRaio, direcaoRaio, t, objetos[k]);
-				glm::vec3 cor = glm::vec3(0, 0, 0);// cor de BACKGROUND
-				if (tocou) {
-					//TODO guarda as intessecoes no buffer para chamar o shader de 1 vez so?
-					intersecoes[contIntersecoes] = t;
-					if (contIntersecoes >= MAX_INTERSECOES) {
-						shade(origemRaio, direcaoRaio, t);
-						contIntersecoes = 0;
-					}
-					contIntersecoes++;
+				float t;
+				direcaoRaio = glm::normalize(glm::vec3(yTransformada, yTransformada, -1)) - origemRaio;
+				direcaoRaio = glm::normalize(direcaoRaio);
+				ObjetoImplicito* objeto = NULL;
+				objeto = tracarRaio(origemRaio, direcaoRaio, t, objetos[k]);
+
+				if (objeto != NULL) {
+					//TODO calcula a cor
+					pixelTela.push_back(glm::vec3(1.0f, 0.2f, 0.5f));
+				} else {
+					//TODO cor de background
+					pixelTela.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
 				}
+
+				//TODO shade
 			}
 		}
 
@@ -471,8 +479,8 @@ void initShaders(void) {
 
     // Load shaders and use the resulting shader program
     shaderAmbient 	= InitShader( "shaders/basicShader.vert", 	"shaders/basicShader.frag" );
-    shaderGouraud 	= InitShader( "shaders/Gouraud.vert", 		"shaders/Gouraud.frag" );
-    shaderPhong 	= InitShader( "shaders/Phong.vert", 		"shaders/Phong.frag" );
+ //   shaderGouraud 	= InitShader( "shaders/Gouraud.vert", 		"shaders/Gouraud.frag" );
+ //   shaderPhong 	= InitShader( "shaders/Phong.vert", 		"shaders/Phong.frag" );
 
     shader 			= shaderAmbient;
 }

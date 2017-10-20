@@ -22,8 +22,17 @@ void shade(glm::vec3 origemRaio, glm::vec3 direcaoRaio, float t) {
     return;
 }
 
-bool tracarRaio(glm::vec3 origem, glm::vec3 posicao, float t, ObjetoImplicito* objeto) {
-    return false;
+ObjetoImplicito* tracarRaio(glm::vec3 origem, glm::vec3 posicao, float t, ObjetoImplicito* objeto) {
+    ObjetoImplicito *objetoTocado = NULL;
+    t = INFINITO; 
+    float menorT = INFINITO;
+    if (objeto->intersecao(origem, posicao, t)) {
+        if (t < menorT) {
+            menorT = t;
+            objetoTocado = objeto;
+        }
+    }
+    return objetoTocado;
 }
 
 

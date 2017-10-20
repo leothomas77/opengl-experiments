@@ -18,7 +18,7 @@
 /*
 Funcoes para implementacao da tecnica de renderizacao por raycasting
 */
-bool tracarRaio(glm::vec3 origem, glm::vec3 posicao, float t, ObjetoImplicito *objeto);
+ObjetoImplicito* tracarRaio(glm::vec3 origem, glm::vec3 posicao, float t, ObjetoImplicito *objeto);
 void moveCamera();
 void moveObject();
 void shade(glm::vec3 origemRaio, glm::vec3 direcaoRaio, float t);

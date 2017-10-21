@@ -4,6 +4,10 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
+#include <cfloat>
+#include <cstdlib>
+#include <cstdio>
 
 #include <glm/vec3.hpp> 
 #include <glm/glm.hpp>
@@ -11,6 +15,7 @@
 #include "raycasting.h"
 #include "objetos.h"
 
+using namespace std;
 
 
 
@@ -22,17 +27,20 @@ void shade(glm::vec3 origemRaio, glm::vec3 direcaoRaio, float t) {
     return;
 }
 
-ObjetoImplicito* tracarRaio(glm::vec3 origem, glm::vec3 posicao, float t, ObjetoImplicito* objeto) {
-    ObjetoImplicito *objetoTocado = NULL;
+glm::vec3 tracarRaio(glm::vec3 origem, glm::vec3 posicao, float t, Esfera *objeto) {
+    Esfera *objetoTocado = new Esfera();
     t = INFINITO; 
     float menorT = INFINITO;
+    //cout << "intersecao..." << endl;
+    
     if (objeto->intersecao(origem, posicao, t)) {
         if (t < menorT) {
             menorT = t;
             objetoTocado = objeto;
+            cout << "objeto tocado..." << endl;
         }
     }
-    return objetoTocado;
+    return objetoTocado->superficie.corRGB;
 }
 
 

@@ -31,13 +31,14 @@ OBJFILES 	=	initShaders.o raycasting.o
 	$(CXX) -o $*.o -c $(CXXFLAGS) $(INC_PATH) $*.cpp
 
 # ***********************************************************************************
-all:	load3DModel
+all:	main
 
 
-load3DModel:	$(OBJFILES) load3DModel.o
+main:	$(OBJFILES) main.o
 	@echo "Linking ...."
 	$(CXX) $^ -o $@ $(LIB_PATH) $(GL_LDFLAGS) $(GLFW_LDFLAGS) $(ASSIMP_LDFLAGS) $(MACOS_LDFLAGS)
 		
 clean:	
 	@echo "Clearing ..."
-	rm -f *.o core *.*~ *~ glfwBasic drawCube glfw drawCube load3DModel
+	rm -f *.o core *.*~ *~ main
+

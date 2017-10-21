@@ -2,8 +2,15 @@
 #include <cfloat>
 #include <vector>
 #include <limits>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
 
-#include <glm/vec3.hpp> 
+#include <fstream>
+#include <vector>
+#include <cassert>
+
+#include <glm/vec3.hpp>
 #include <glm/vec4.hpp> 
 #include <glm/mat4x4.hpp> 
 #include <glm/gtc/matrix_transform.hpp> 
@@ -34,7 +41,6 @@
 
 #define MAX_INTERSECOES 10
 #define MAX_RECURSOES	5
-#define BACKGROUND	0;
 
 using namespace std;
 
@@ -307,9 +313,8 @@ int attrV, attrC, attrN;
 	glBindBuffer(GL_ARRAY_BUFFER, 0); 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
 }
-
-void desenhaBuffer(glm::vec3 pixels) {
-
+/*
+void desenhaPixels(glm::vec3 pixels) {
 	
 	glBindBuffer(GL_ARRAY_BUFFER, pixels.get); 		
 	attrV = glGetAttribLocation(shader, "aPosition");
@@ -335,7 +340,7 @@ void desenhaBuffer(glm::vec3 pixels) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0); 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
 }
-
+*/
 		
 /// ***********************************************************************
 /// **
@@ -378,52 +383,63 @@ void display(void) {
 	
 	//TODO inicializar matrix de transformacao Camera -> Mundo
 	glm::mat4x4 cameraMundo = glm::mat4x4(0);
-
+	
 	origemRaio = glm::vec3(0.0, 0.0, 0.0);
 	std::vector<ObjetoImplicito *> objetos;
-	std::vector<glm::vec3> pixelTela;
-
+	std::vector<glm::vec3> pixelsTela;
+    glm::vec3 image[360000], *pixel = image;
+	
 	objetos.push_back(new Esfera(0.2, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
-//	GLfloat intersecoes[MAX_INTERSECOES];
-//	int contIntersecoes = 0;
-    float invWidth = 1 / float(winWidth), invHeight = 1 / float(winHeight);
+	
+	Esfera *objeto = new Esfera(0.2, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0));
+	float invWidth = 1 / float(winWidth), invHeight = 1 / float(winHeight);
     float fov = 30, aspectratio = winWidth / float(winHeight);
     float angulo = tan(M_PI * 0.5 * fov / 180.);
-
+	int l = 0;
 	for (int x = 0; x < winWidth; x++) {
 		for (int y = 0; y < winHeight; y++) {
-
+			
   			float xTransformada = (2 * ((x + 0.5) * invWidth) - 1) * angulo * aspectratio;
             float yTransformada = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
-          
-    		for (unsigned k = 0; k < objetos.size(); k++) {
+			
+    		//for (unsigned k = 0; k < objetos.size(); ++k) {
 
 				float t;
 				direcaoRaio = glm::normalize(glm::vec3(yTransformada, yTransformada, -1)) - origemRaio;
 				direcaoRaio = glm::normalize(direcaoRaio);
-				ObjetoImplicito* objeto = NULL;
-				objeto = tracarRaio(origemRaio, direcaoRaio, t, objetos[k]);
-
-				if (objeto != NULL) {
+				image[l] = tracarRaio(origemRaio, direcaoRaio, t, objeto);
+				l++;
+				//if (objeto != NULL) {
 					//TODO calcula a cor
-					pixelTela.push_back(glm::vec3(1.0f, 0.2f, 0.5f));
-				} else {
+					//pixelsTela.push_back(objeto->superficie.corRGBA);
+				//} else {
 					//TODO cor de background
-					pixelTela.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
-				}
+					//pixelsTela.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+				//}
 
-				//TODO shade
-			}
+			//}
 		}
 
-	} 
+	}
 
+	//Shade aqui
+ 	std::ofstream ofs("./imagem.ppm", std::ios::out | std::ios::binary);
+ 	ofs << "P6\n" << winWidth << " " << winHeight << "\n255\n";
+	for (unsigned i = 0; i < winWidth * winHeight; ++i) {
+		ofs << (unsigned char)(std::min(float(1), image[i].x) * 255) <<
+				(unsigned char)(std::min(float(1), image[i].y) * 255) <<
+				(unsigned char)(std::min(float(1), image[i].z) * 255);
+	}
+	ofs.close();
+	delete pixel;
 	//shade(lightPos, camPos, MVP, normalMat, ModelMat);
 
   	//drawAxis();
 
  	//drawMesh();
 }
+
+
 
 void shade(glm::vec3 lightPos, glm::vec3 camPos, glm::mat4 MVP, glm::mat4 normalMat, glm::mat4 ModelMat) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -580,71 +596,12 @@ static void GLFW_MainLoop(GLFWwindow* window) {
 
    		if (ellapsed > 1.0f / 30.0f) {
 	   		last = now;
-	        display();
+	        //display();
 	        glfwSwapBuffers(window);
 	    	}
 
         glfwPollEvents();
     	}
-}
-
-/* ************************************************************************* */
-/*                                                                           */
-/* ************************************************************************* */
-
-static void initASSIMP() {
-
-	struct aiLogStream stream;
-
-	/* get a handle to the predefined STDOUT log stream and attach
-	   it to the logging system. It remains active for all further
-	   calls to aiImportFile(Ex) and aiApplyPostProcessing. */
-	stream = aiGetPredefinedLogStream(aiDefaultLogStream_STDOUT,NULL);
-	aiAttachLogStream(&stream);
-}
-
-/* ************************************************************************* */
-/*                                                                           */
-/* ************************************************************************* */
-
-static void loadMesh(char* filename) {
-
-	scene = aiImportFile(filename, aiProcessPreset_TargetRealtime_MaxQuality);
-
-	if (!scene) {
-		cout << "## ERROR loading mesh" << endl;
-		exit(-1);
-		}
-
-	aiMatrix4x4 trafo;
-	aiIdentityMatrix4(&trafo);
-
-	aiVector3D min, max;
-
-	scene_min.x = scene_min.y = scene_min.z =  FLT_MAX;
-	scene_max.x = scene_max.y = scene_max.z = -FLT_MAX;
-
-	get_bounding_box_for_node(scene->mRootNode, &scene_min, &scene_max, &trafo);
-
-	scene_center.x = (scene_min.x + scene_max.x) / 2.0f;
-	scene_center.y = (scene_min.y + scene_max.y) / 2.0f;
-	scene_center.z = (scene_min.z + scene_max.z) / 2.0f;
-
-	scene_min.x *= 1.2;
-	scene_min.y *= 1.2;
-	scene_min.z *= 1.2;
-	scene_max.x *= 1.2;
-	scene_max.y *= 1.2;
-	scene_max.z *= 1.2;
-
-	createAxis();
-
-	if(scene_list == 0) 
-		createVBOs(scene);
-
-	cout << "Bounding Box: " << " ( " 	<< scene_min.x << " , " << scene_min.y << " , " << scene_min.z << " ) - ( " 
-										<< scene_max.x << " , " << scene_max.y << " , " << scene_max.z << " )" << endl;
-	cout << "Bounding Box: " << " ( " << scene_center.x << " , " << scene_center.y << " , " << scene_center.z << " )" << endl;
 }
 
 /* ************************************************************************* */
@@ -657,26 +614,37 @@ int main(int argc, char *argv[]) {
 
     GLFWwindow* window;
 
-	char meshFilename[] = "objs/sphere.obj";
-
     window = initGLFW(argv[0], winWidth, winHeight);
 
-    initASSIMP();
     initGL(window);
 	initShaders();
 
-    if (argc > 1)
-	    loadMesh(argv[1]);
-	else
-    	loadMesh(meshFilename);
+	//GLFW_MainLoop(window);
+	float t = INFINITO;
+	Esfera *objeto = new Esfera(1.0, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0));
+	bool ret = false;
+	ret = objeto->intersecao(glm::vec3(0, 0, 0), glm::vec3(0,0,0), t);
+	if (ret) {
+		cout << "interceptou com t: " << t << endl;
+			
+	}
 
-    GLFW_MainLoop(window);
-
+/*
+	float t0=0.0, t1=0.0;
+	bool ret = false;
+	for (int i = 0; i < 100; i++) {
+		float a, b, c;
+		a = rand
+		ret = objeto->calcularRaizesEquacao(2.0, 3.0, 1.0, t0, t1);
+		if (ret) {
+			cout << "t0: " << t0 << endl;
+			cout << "t1: " << t1 << endl;
+			
+		} 
+	}
+*/	
     glfwDestroyWindow(window);
     glfwTerminate();
-
-	aiReleaseImport(scene);
-	aiDetachAllLogStreams();
 
     exit(EXIT_SUCCESS);
 }

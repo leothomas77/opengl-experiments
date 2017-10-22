@@ -7,6 +7,10 @@
 	#define INFINITO 1e8
 #endif
 
+#ifndef BACKGROUND
+	#define BACKGROUND glm::vec3(0)
+#endif
+
 #include <glm/vec3.hpp> 
 #include <glm/vec4.hpp> 
 #include <glm/mat4x4.hpp> 
@@ -18,7 +22,7 @@
 /*
 Funcoes para implementacao da tecnica de renderizacao por raycasting
 */
-glm::vec3 tracarRaio(glm::vec3 origem, glm::vec3 posicao, float t, Esfera *objeto);
+glm::vec3 tracarRaio(glm::vec3 origem, glm::vec3 direcao, std::vector<ObjetoImplicito*> objetos);
 void moveCamera();
 void moveObject();
 void shade(glm::vec3 origemRaio, glm::vec3 direcaoRaio, float t);

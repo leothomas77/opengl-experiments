@@ -60,8 +60,8 @@ vector<GLfloat> vboVertices;
 vector<GLfloat> vboNormals;
 vector<GLfloat> vboColors;
 
-int winWidth 	= 600, 
-	winHeight 	= 600;
+unsigned winWidth 	= 640, 
+	winHeight 	= 480;
 
 float 	angleX 	= 	0.0f,
 		angleY	= 	0.0f,
@@ -73,6 +73,10 @@ const aiScene* scene = NULL;
 GLuint scene_list = 0;
 aiVector3D scene_min, scene_max, scene_center;
 
+
+int nanoToMili(double nanoseconds) {
+    return (int)(nanoseconds*0x431BDE82)>>18;
+}
 
 /* ---------------------------------------------------------------------------- */
 void get_bounding_box_for_node	(	const struct aiNode* nd,
@@ -346,11 +350,11 @@ void desenhaPixels(glm::vec3 pixels) {
 /// **
 /// ***********************************************************************
 
-void display(void) {
+void display(GLFWwindow* window) {
 
 //	angleY += 0.02;
 
-	float Max = max(scene_max.x, max(scene_max.y, scene_max.z));
+float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 
 // Posiciona a luz
 	glm::vec3 lightPos	= glm::vec3(Max, Max, 0.0);
@@ -379,36 +383,50 @@ void display(void) {
 	glm::mat4 normalMat		= glm::transpose(glm::inverse(ModelMat));
 
 //Inicia o tracado de raios de cada ponto da tela ate o objeto
+	
 	glm::vec3 origemRaio, direcaoRaio;
 	
-	//TODO inicializar matrix de transformacao Camera -> Mundo
-	glm::mat4x4 cameraMundo = glm::mat4x4(0);
+	Esfera *esfera1 = new Esfera(0.3, glm::vec3(0.5, -1, -5), glm::vec3(1.0, 0.0, 0.0));
+	Esfera *esfera2 = new Esfera(0.7, glm::vec3(0.5, -1, -25), glm::vec3(0.0, 1.0, 0.0));
+	Esfera *esfera3 = new Esfera(0.8, glm::vec3(0.5, -2, -1), glm::vec3(0.0, 0.0, 1.0));
+	//Esfera *esfera4 = new Esfera(1, glm::vec3(2, -4, -5), glm::vec3(1.0, 0.0, 0.0));
 	
-	origemRaio = glm::vec3(0.0, 0.0, 0.0);
-	std::vector<ObjetoImplicito *> objetos;
-	std::vector<glm::vec3> pixelsTela;
-    glm::vec3 image[360000], *pixel = image;
+
+	std::vector<ObjetoImplicito*> objetos;
+	objetos.push_back(esfera1);
+	objetos.push_back(esfera2);
+	objetos.push_back(esfera3);
+	//objetos.push_back(esfera4);
 	
-	objetos.push_back(new Esfera(0.2, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0)));
-	
-	Esfera *objeto = new Esfera(0.2, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0));
 	float invWidth = 1 / float(winWidth), invHeight = 1 / float(winHeight);
     float fov = 30, aspectratio = winWidth / float(winHeight);
     float angulo = tan(M_PI * 0.5 * fov / 180.);
-	int l = 0;
-	for (int x = 0; x < winWidth; x++) {
-		for (int y = 0; y < winHeight; y++) {
+
+	cout << "Percorrendo viewport de " << winWidth * winHeight << " pixels" << endl;	
+	double inicio = glfwGetTime(); 
+	origemRaio = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 pixels[640 * 480];
+	unsigned k = 0;
+	for (unsigned y = 0; y < winHeight; y++) {
+		for (unsigned x = 0; x < winWidth; x++) {
 			
   			float xTransformada = (2 * ((x + 0.5) * invWidth) - 1) * angulo * aspectratio;
             float yTransformada = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
 			
     		//for (unsigned k = 0; k < objetos.size(); ++k) {
+				direcaoRaio = glm::normalize(glm::vec3(xTransformada, yTransformada, -1));
+				if (x == winWidth/2 && y == winHeight / 2 ) {
+					cout << " direcao raio: x,y,z: (" << direcaoRaio.x << "," << direcaoRaio.y << "," << direcaoRaio.z << ")" << endl;
+					cout << " modulo raio: " << sqrt( direcaoRaio.x*direcaoRaio.x + direcaoRaio.y*direcaoRaio.y + direcaoRaio.z*direcaoRaio.z ) << endl;
+					
+				}
 
-				float t;
-				direcaoRaio = glm::normalize(glm::vec3(yTransformada, yTransformada, -1)) - origemRaio;
-				direcaoRaio = glm::normalize(direcaoRaio);
-				image[l] = tracarRaio(origemRaio, direcaoRaio, t, objeto);
-				l++;
+				
+				pixels[k] = tracarRaio(origemRaio, direcaoRaio, objetos);
+				if (xTransformada == 0.0 && yTransformada == 0.0) {
+					pixels[k] = glm::vec3(1, 1, 1);				
+				}
+				k++;
 				//if (objeto != NULL) {
 					//TODO calcula a cor
 					//pixelsTela.push_back(objeto->superficie.corRGBA);
@@ -421,17 +439,23 @@ void display(void) {
 		}
 
 	}
-
+	double fim = glfwGetTime();
+	double duracao = fim - inicio ;
+	int ms = nanoToMili(duracao);
+	
+		
+	cout << "Duracao:  " << ms / 1000 << " segundos " << endl;	
+	
+	glfwSetWindowShouldClose(window, true);
 	//Shade aqui
  	std::ofstream ofs("./imagem.ppm", std::ios::out | std::ios::binary);
  	ofs << "P6\n" << winWidth << " " << winHeight << "\n255\n";
 	for (unsigned i = 0; i < winWidth * winHeight; ++i) {
-		ofs << (unsigned char)(std::min(float(1), image[i].x) * 255) <<
-				(unsigned char)(std::min(float(1), image[i].y) * 255) <<
-				(unsigned char)(std::min(float(1), image[i].z) * 255);
+		ofs << (unsigned char)(std::min(float(1), pixels[i].x) * 255) <<
+				(unsigned char)(std::min(float(1), pixels[i].y) * 255) <<
+				(unsigned char)(std::min(float(1), pixels[i].z) * 255);
 	}
 	ofs.close();
-	delete pixel;
 	//shade(lightPos, camPos, MVP, normalMat, ModelMat);
 
   	//drawAxis();
@@ -596,7 +620,7 @@ static void GLFW_MainLoop(GLFWwindow* window) {
 
    		if (ellapsed > 1.0f / 30.0f) {
 	   		last = now;
-	        //display();
+	        display(window);
 	        glfwSwapBuffers(window);
 	    	}
 
@@ -619,16 +643,16 @@ int main(int argc, char *argv[]) {
     initGL(window);
 	initShaders();
 
-	//GLFW_MainLoop(window);
-	float t = INFINITO;
-	Esfera *objeto = new Esfera(1.0, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0));
+	GLFW_MainLoop(window);
+/*	float t = INFINITO;
+	Esfera *objeto = new Esfera(100.0, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0));
 	bool ret = false;
 	ret = objeto->intersecao(glm::vec3(0, 0, 0), glm::vec3(0,0,0), t);
 	if (ret) {
 		cout << "interceptou com t: " << t << endl;
 			
 	}
-
+*/
 /*
 	float t0=0.0, t1=0.0;
 	bool ret = false;

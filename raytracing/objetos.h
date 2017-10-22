@@ -104,7 +104,13 @@ public:
             retorno = true;
         } 
         return retorno; 
-    } 
+    }
+
+    //glm::vec3 calcularNormal(glm::vec3 origem, glm::vec3 direcao, float tIntersecao) {
+      //  glm::vec3 ponto = glm::dot((origem + direcao), tIntersecao);
+      //  glm::vec3 normalPonto = glm::normalize(ponto - this->centro);
+      //  return normalPonto;
+    //}
 
 };
 

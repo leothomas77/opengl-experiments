@@ -42,6 +42,14 @@
 #define MAX_INTERSECOES 10
 #define MAX_RECURSOES	5
 
+#ifndef WIDTH
+#define WIDTH 800
+#endif
+
+#ifndef HEIGHT
+#define HEIGHT 800
+#endif
+
 using namespace std;
 
 GLuint 	shaderAmbient,
@@ -60,8 +68,8 @@ vector<GLfloat> vboVertices;
 vector<GLfloat> vboNormals;
 vector<GLfloat> vboColors;
 
-unsigned winWidth 	= 640, 
-	winHeight 	= 480;
+unsigned winWidth 	= WIDTH, 
+	winHeight 	= HEIGHT;
 
 float 	angleX 	= 	0.0f,
 		angleY	= 	0.0f,
@@ -386,26 +394,30 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 	
 	glm::vec3 origemRaio, direcaoRaio;
 	
-	Esfera *esfera1 = new Esfera(0.3, glm::vec3(0.5, -1, -5), glm::vec3(1.0, 0.0, 0.0));
-	Esfera *esfera2 = new Esfera(0.7, glm::vec3(0.5, -1, -25), glm::vec3(0.0, 1.0, 0.0));
-	Esfera *esfera3 = new Esfera(0.8, glm::vec3(0.5, -2, -1), glm::vec3(0.0, 0.0, 1.0));
-	//Esfera *esfera4 = new Esfera(1, glm::vec3(2, -4, -5), glm::vec3(1.0, 0.0, 0.0));
-	
+	Esfera *esfera1 = new Esfera(0.5, glm::vec3(0.0, 0.0, -5.0), glm::vec3(1.0, 0.0, 0.0));
+	Esfera *esfera2 = new Esfera(0.5, glm::vec3(3.0, 0.0, -5.0), glm::vec3(0.0, 1.0, 0.0));
+	Esfera *esfera3 = new Esfera(0.5, glm::vec3(-3.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0));
+	Esfera *esfera4 = new Esfera(0.5, glm::vec3(1.5, 0.0, -5.0), glm::vec3(1.0, 1.0, 0.0));
+	Esfera *esfera5 = new Esfera(0.8, glm::vec3(-1.5, 0.0, -5.0), glm::vec3(0.0, 1.0, 1.0));
+	//Plano  *plano = new Plano;
 
 	std::vector<ObjetoImplicito*> objetos;
 	objetos.push_back(esfera1);
 	objetos.push_back(esfera2);
+	objetos.push_back(esfera5);
 	objetos.push_back(esfera3);
-	//objetos.push_back(esfera4);
+	objetos.push_back(esfera4);
+	//objetos.push_back(plano);
 	
+
 	float invWidth = 1 / float(winWidth), invHeight = 1 / float(winHeight);
-    float fov = 30, aspectratio = winWidth / float(winHeight);
+    float fov = 83, aspectratio = winWidth / float(winHeight);
     float angulo = tan(M_PI * 0.5 * fov / 180.);
 
 	cout << "Percorrendo viewport de " << winWidth * winHeight << " pixels" << endl;	
 	double inicio = glfwGetTime(); 
 	origemRaio = glm::vec3(0.0f, 0.0f, 0.0f);
-	glm::vec3 pixels[640 * 480];
+	glm::vec3 pixels[WIDTH * HEIGHT];
 	unsigned k = 0;
 	for (unsigned y = 0; y < winHeight; y++) {
 		for (unsigned x = 0; x < winWidth; x++) {
@@ -427,15 +439,6 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 					pixels[k] = glm::vec3(1, 1, 1);				
 				}
 				k++;
-				//if (objeto != NULL) {
-					//TODO calcula a cor
-					//pixelsTela.push_back(objeto->superficie.corRGBA);
-				//} else {
-					//TODO cor de background
-					//pixelsTela.push_back(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-				//}
-
-			//}
 		}
 
 	}
@@ -446,8 +449,16 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 		
 	cout << "Duracao:  " << ms / 1000 << " segundos " << endl;	
 	
+	
+	//shade(lightPos, camPos, MVP, normalMat, ModelMat);
+
+  	//drawAxis();
+
+ 	//drawMesh();
+}
+
+void salvarImagem(GLFWwindow* window, glm::vec3 *pixels) {
 	glfwSetWindowShouldClose(window, true);
-	//Shade aqui
  	std::ofstream ofs("./imagem.ppm", std::ios::out | std::ios::binary);
  	ofs << "P6\n" << winWidth << " " << winHeight << "\n255\n";
 	for (unsigned i = 0; i < winWidth * winHeight; ++i) {
@@ -456,11 +467,6 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 				(unsigned char)(std::min(float(1), pixels[i].z) * 255);
 	}
 	ofs.close();
-	//shade(lightPos, camPos, MVP, normalMat, ModelMat);
-
-  	//drawAxis();
-
- 	//drawMesh();
 }
 
 

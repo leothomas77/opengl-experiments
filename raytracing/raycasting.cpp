@@ -32,7 +32,10 @@ glm::vec3 tracarRaio(glm::vec3 origem, glm::vec3 direcao, std::vector<ObjetoImpl
  
     float t = INFINITO;
     static unsigned int cont = 0;
+    //glm::vec3 ponto = glm::vec3(0);   
     glm::vec3 cor = BACKGROUND;
+    //glm::vec3 normalPonto = glm::vec3(0);   
+    //glm::vec3 pixel3D[2];
     
     for(unsigned i = 0; i < objetos.size(); i++) {
         float t1 = INFINITO;
@@ -49,13 +52,18 @@ glm::vec3 tracarRaio(glm::vec3 origem, glm::vec3 direcao, std::vector<ObjetoImpl
                 t = t0;
                 cont++;
                 //cout << "objeto tocado..." << cont << " vezes" << endl;
+                //ponto = glm::dot(origem + direcao, tIntersecao);
                 cor = objetos.at(i)->superficie.corRGB;
+                //normalPonto = glm::normalize(ponto - this->centro);;
             }
         }
         
-    }
- 
-
+    } 
+    
+    //pixel3D[0] = ponto;
+    //pixel3D[1] = cor;
+    //pixel3D[2] = normalPonto;
+    
     return cor;
 }
 

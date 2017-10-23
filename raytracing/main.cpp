@@ -303,11 +303,24 @@ void criarVBOs() {
 }
 
 
-void desenharPixels(unsigned char *raw) {
+void desenharPixels(vec3 *raw) {
 	
 	int attrV, attrC, attrN;
-
+	GLuint vbo;
+	glGenBuffers(1, &vbo);
+	glUseProgram(shader);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, WIDTH * HEIGHT * sizeof(vec3), raw, GL_STATIC_DRAW);
+	GLint aPosition = glGetAttribLocation(shader, "aPosition");
+	glVertexAttribPointer(aPosition, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(aPosition);
+	
+	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glBindVertexArray(vbo);
+	glDrawArrays(GL_POINT, 0, WIDTH * HEIGHT);
 	/*
 	glUseProgram(shader);
 
@@ -332,7 +345,7 @@ void desenharPixels(unsigned char *raw) {
 	unsigned quantidadeVertices = vboVertices.size() / 3;
 	*/
 	//glDrawArrays(GL_TRIANGLES, 0, quantidadeVertices); 
-	glDrawPixels(WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, raw);
+	//glDrawPixels(WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, raw);
 
 	//glDisableVertexAttribArray(attrV);
 	//glDisableVertexAttribArray(attrC);
@@ -432,11 +445,11 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 	
 
 
-	criarVBOs();
+	//criarVBOs();
 
-	//desenharPixels(pixelsAux);
+	desenharPixels(raw);
 
-	salvarImagem(window, pixelsAux);
+	//salvarImagem(window, pixelsAux);
 	//glfwSetWindowShouldClose(window, true);
 	
 	double fim = glfwGetTime();

@@ -302,7 +302,7 @@ void criarVBOs() {
 	cout << "			#Quantidade de vertices= " << meshSize << endl;	
 }
 
-void alocarBuffer(unsigned int *raw, vec3 *pixels) {
+void alocarBuffer(unsigned int *raw, GLfloat *pixels) {
 	glGenBuffers(2, vbo);
 	glUseProgram(shader);
 	
@@ -310,13 +310,13 @@ void alocarBuffer(unsigned int *raw, vec3 *pixels) {
 	glBufferData(GL_ARRAY_BUFFER, WIDTH * HEIGHT * sizeof(unsigned int), raw, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, WIDTH * HEIGHT * sizeof(vec3), pixels, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, WIDTH * HEIGHT * sizeof(GLfloat), pixels, GL_STATIC_DRAW);
 }
 
 
-void desenharPixels(unsigned int *raw, vec3 *pixels) {
+void desenharPixels(unsigned int *raw, GLfloat *pixels) {
 	
-	int attrV, attrC, attrN;
+	int attrV, attrC;
 	attrV = glGetAttribLocation(shader, "aPosition");
 	glVertexAttribPointer(attrV, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(attrV);
@@ -328,43 +328,16 @@ void desenharPixels(unsigned int *raw, vec3 *pixels) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glBindVertexArray(vbo[0]);
-	glDrawArrays(GL_POINT, 0, WIDTH * HEIGHT);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[2]);
+    glDrawPixels( WIDTH, HEIGHT, GL_RGB, GL_FLOAT, pixels );
+	
+	//glDrawElements(GL_POINT, WIDTH * HEIGHT, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
 
 	glDisableVertexAttribArray(attrV);
 	glDisableVertexAttribArray(attrC);
 		
-	/*
-	glUseProgram(shader);
-
-	int loc = glGetUniformLocation( shader, "uMVP" );
-	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(MVP));
-	
-	glBindBuffer(GL_ARRAY_BUFFER, meshVBO[0]); 		
-	attrV = glGetAttribLocation(shader, "aPosition");
-	glVertexAttribPointer(attrV, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(attrV);
-
-	glBindBuffer(GL_ARRAY_BUFFER, meshVBO[1]); 		
-	attrC = glGetAttribLocation(shader, "aColor");
-	glVertexAttribPointer(attrC, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(attrC);
-
-	glBindBuffer(GL_ARRAY_BUFFER, meshVBO[2]); 		
-	attrN = glGetAttribLocation(shader, "aNormal");
-	glVertexAttribPointer(attrN, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(attrN);
-
-	unsigned quantidadeVertices = vboVertices.size() / 3;
-	*/
-	//glDrawArrays(GL_TRIANGLES, 0, quantidadeVertices); 
-	//glDrawPixels(WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, raw);
-
-	//glDisableVertexAttribArray(attrV);
-	//glDisableVertexAttribArray(attrC);
-	//glDisableVertexAttribArray(attrN);
-
-	//glBindBuffer(GL_ARRAY_BUFFER, 0); 
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
+	glBindBuffer(GL_ARRAY_BUFFER, 0); 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
 }
 
 		
@@ -433,10 +406,11 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 	origemRaio = glm::vec3(0.0f, 0.0f, 0.0f);
 	unsigned int viewport[WIDTH * HEIGHT], *viewportAux = viewport;
 	unsigned int *ptrViewport = viewport;
-	vec3 cores[WIDTH * HEIGHT], *coresAux = cores;
-	vec3 *ptrCores = cores;
+	GLfloat cores[4 * WIDTH * HEIGHT], *coresAux = cores;
+	GLfloat *ptrCores = cores;
+	vec3 cor = vec3(0);
 	
-	if (!carregou) {
+	//if (!carregou) {//Para carregar somente uma vez
 		for (unsigned x = 0; x < winWidth; x++) {
 			*ptrViewport = x;
 			ptrViewport++;
@@ -448,13 +422,24 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 				float yTransformada = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
 				
 				direcaoRaio = glm::normalize(glm::vec3(xTransformada, yTransformada, -1));
-				*ptrCores = tracarRaio(origemRaio, direcaoRaio, objetos, vboVertices, vboColors, vboNormals);
+				cor = tracarRaio(origemRaio, direcaoRaio, objetos, vboVertices, vboColors, vboNormals);
+				*ptrCores = cor.x;
+				ptrCores++;
+				*ptrCores = cor.y;
+				ptrCores++;
+				*ptrCores = cor.z;
+				ptrCores++;
+				*ptrCores = 1.0;
 				ptrCores++;
 			}
 		}
-		carregou = true;
+		//carregou = true;
 	
-	}
+	//}
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	glUseProgram(shader);
 	
 	alocarBuffer(viewportAux, coresAux);
 	desenharPixels(viewportAux, coresAux);

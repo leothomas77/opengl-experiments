@@ -28,59 +28,10 @@
 #include "initShaders.h"
 #include "raycasting.h"
 #include "objetos.h"
-
-#ifndef BUFFER_OFFSET 
-	#define BUFFER_OFFSET(i) ((char *)NULL + (i))
-#endif
-#ifndef MIN
-	#define MIN(x,y) (x<y?x:y)
-#endif
-#ifndef MAX
-	#define MAX(x,y) (y>x?y:x)
-#endif
-
-#define MAX_INTERSECOES 10
-#define MAX_RECURSOES	5
-
-#ifndef WIDTH
-#define WIDTH 800
-#endif
-
-#ifndef HEIGHT
-#define HEIGHT 800
-#endif
+#include "globals.h"
 
 using namespace std;
-
-GLuint 	shaderAmbient,
-		shaderGouraud,
-		shaderPhong,
-		shader;
-GLuint 	axisVBO[3];
-GLuint 	meshVBO[3];
-GLuint 	pontosVBO[3];
-GLuint 	meshSize;
-
-
-double  last;
-
-vector<GLfloat> vboVertices;
-vector<GLfloat> vboNormals;
-vector<GLfloat> vboColors;
-
-unsigned winWidth 	= WIDTH, 
-	winHeight 	= HEIGHT;
-
-float 	angleX 	= 	0.0f,
-		angleY	= 	0.0f,
-		angleZ	=	0.0f,
-		distanciaCamera = 5.0f;
-
-/* the global Assimp scene object */
-const aiScene* scene = NULL;
-GLuint scene_list = 0;
-aiVector3D scene_min, scene_max, scene_center;
-
+using namespace glm;
 
 int nanoToMili(double nanoseconds) {
     return (int)(nanoseconds*0x431BDE82)>>18;
@@ -325,10 +276,45 @@ int attrV, attrC, attrN;
 	glBindBuffer(GL_ARRAY_BUFFER, 0); 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
 }
-/*
-void desenhaPixels(glm::vec3 pixels) {
+
+void criarVBOs() {
+	cout << "Criando VBOs" << endl;
+	glGenBuffers(3, meshVBO);
 	
-	glBindBuffer(GL_ARRAY_BUFFER, pixels.get); 		
+	glBindBuffer(	GL_ARRAY_BUFFER, meshVBO[0]);
+
+	glBufferData(	GL_ARRAY_BUFFER, vboVertices.size()*sizeof(float), 
+					vboVertices.data(), GL_STATIC_DRAW);
+
+	glBindBuffer(	GL_ARRAY_BUFFER, meshVBO[1]);
+
+	glBufferData(	GL_ARRAY_BUFFER, vboColors.size()*sizeof(float), 
+					vboColors.data(), GL_STATIC_DRAW);
+
+	if (vboNormals.size() > 0) {
+		glBindBuffer(	GL_ARRAY_BUFFER, meshVBO[2]);
+
+		glBufferData(	GL_ARRAY_BUFFER, vboNormals.size()*sizeof(float), 
+						vboNormals.data(), GL_STATIC_DRAW);
+	}	
+
+	meshSize = vboVertices.size() / 3;
+	cout << "			#Quantidade de vertices= " << meshSize << endl;	
+}
+
+
+void desenharPixels(unsigned char *raw) {
+	
+	int attrV, attrC, attrN;
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	/*
+	glUseProgram(shader);
+
+	int loc = glGetUniformLocation( shader, "uMVP" );
+	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(MVP));
+	
+	glBindBuffer(GL_ARRAY_BUFFER, meshVBO[0]); 		
 	attrV = glGetAttribLocation(shader, "aPosition");
 	glVertexAttribPointer(attrV, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(attrV);
@@ -343,16 +329,19 @@ void desenhaPixels(glm::vec3 pixels) {
 	glVertexAttribPointer(attrN, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(attrN);
 
-	glDrawArrays(GL_POINT, 0, quantidade); 
+	unsigned quantidadeVertices = vboVertices.size() / 3;
+	*/
+	//glDrawArrays(GL_TRIANGLES, 0, quantidadeVertices); 
+	glDrawPixels(WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, raw);
 
-	glDisableVertexAttribArray(attrV);
-	glDisableVertexAttribArray(attrC);
-	glDisableVertexAttribArray(attrN);
+	//glDisableVertexAttribArray(attrV);
+	//glDisableVertexAttribArray(attrC);
+	//glDisableVertexAttribArray(attrN);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0); 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
+	//glBindBuffer(GL_ARRAY_BUFFER, 0); 
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
 }
-*/
+
 		
 /// ***********************************************************************
 /// **
@@ -417,54 +406,61 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 	cout << "Percorrendo viewport de " << winWidth * winHeight << " pixels" << endl;	
 	double inicio = glfwGetTime(); 
 	origemRaio = glm::vec3(0.0f, 0.0f, 0.0f);
-	glm::vec3 pixels[WIDTH * HEIGHT];
-	unsigned k = 0;
-	for (unsigned y = 0; y < winHeight; y++) {
-		for (unsigned x = 0; x < winWidth; x++) {
-			
-  			float xTransformada = (2 * ((x + 0.5) * invWidth) - 1) * angulo * aspectratio;
-            float yTransformada = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
-			
-    		//for (unsigned k = 0; k < objetos.size(); ++k) {
-				direcaoRaio = glm::normalize(glm::vec3(xTransformada, yTransformada, -1));
-				if (x == winWidth/2 && y == winHeight / 2 ) {
-					cout << " direcao raio: x,y,z: (" << direcaoRaio.x << "," << direcaoRaio.y << "," << direcaoRaio.z << ")" << endl;
-					cout << " modulo raio: " << sqrt( direcaoRaio.x*direcaoRaio.x + direcaoRaio.y*direcaoRaio.y + direcaoRaio.z*direcaoRaio.z ) << endl;
-					
-				}
-
+	vec3 pixels[WIDTH * HEIGHT];
+	vec3 *raw = pixels;
+	vec3 *pixelsAux = pixels;
+	
+	if (!carregou) {
+		for (unsigned y = 0; y < winHeight; y++) {
+			for (unsigned x = 0; x < winWidth; x++) {
 				
-				pixels[k] = tracarRaio(origemRaio, direcaoRaio, objetos);
-				if (xTransformada == 0.0 && yTransformada == 0.0) {
-					pixels[k] = glm::vec3(1, 1, 1);				
-				}
-				k++;
+				float xTransformada = (2 * ((x + 0.5) * invWidth) - 1) * angulo * aspectratio;
+				float yTransformada = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
+				
+				direcaoRaio = glm::normalize(glm::vec3(xTransformada, yTransformada, -1));
+				//if (x == winWidth/2 && y == winHeight / 2 ) {
+				//	cout << " direcao raio: x,y,z: (" << direcaoRaio.x << "," << direcaoRaio.y << "," << direcaoRaio.z << ")" << endl;
+				//	cout << " modulo raio: " << sqrt( direcaoRaio.x*direcaoRaio.x + direcaoRaio.y*direcaoRaio.y + direcaoRaio.z*direcaoRaio.z ) << endl;
+				//}
+				*raw = tracarRaio(origemRaio, direcaoRaio, objetos, vboVertices, vboColors, vboNormals);
+				raw++;
+			}
 		}
-
+		carregou = true;
+	
 	}
+	
+
+
+	criarVBOs();
+
+	//desenharPixels(pixelsAux);
+
+	salvarImagem(window, pixelsAux);
+	//glfwSetWindowShouldClose(window, true);
+	
 	double fim = glfwGetTime();
 	double duracao = fim - inicio ;
 	int ms = nanoToMili(duracao);
 	
 		
-	cout << "Duracao:  " << ms / 1000 << " segundos " << endl;	
+	cout << "Duracao aproximada:  " << ms / 1000 << " segundos " << endl;	
 	
 	
 	//shade(lightPos, camPos, MVP, normalMat, ModelMat);
 
   	//drawAxis();
 
- 	//drawMesh();
 }
 
-void salvarImagem(GLFWwindow* window, glm::vec3 *pixels) {
+void salvarImagem(GLFWwindow* window, vec3 *pixels) {
 	glfwSetWindowShouldClose(window, true);
  	std::ofstream ofs("./imagem.ppm", std::ios::out | std::ios::binary);
  	ofs << "P6\n" << winWidth << " " << winHeight << "\n255\n";
 	for (unsigned i = 0; i < winWidth * winHeight; ++i) {
 		ofs << (unsigned char)(std::min(float(1), pixels[i].x) * 255) <<
-				(unsigned char)(std::min(float(1), pixels[i].y) * 255) <<
-				(unsigned char)(std::min(float(1), pixels[i].z) * 255);
+		(unsigned char)(std::min(float(1), pixels[i].y) * 255) <<
+		(unsigned char)(std::min(float(1), pixels[i].z) * 255);
 	}
 	ofs.close();
 }
@@ -524,7 +520,7 @@ void initGL(GLFWwindow* window) {
 void initShaders(void) {
 
     // Load shaders and use the resulting shader program
-    shaderAmbient 	= InitShader( "shaders/basicShader.vert", 	"shaders/basicShader.frag" );
+    shaderAmbient 	= InitShader( "./shaders/basicShader.vert", 	"./shaders/basicShader.frag" );
  //   shaderGouraud 	= InitShader( "shaders/Gouraud.vert", 		"shaders/Gouraud.frag" );
  //   shaderPhong 	= InitShader( "shaders/Phong.vert", 		"shaders/Phong.frag" );
 
@@ -578,7 +574,12 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 			case 'P'				:
 			case 'p'				: 	shader = shaderPhong;
 										break;
-			}
+
+//			case 'a'				:
+//			case 'A'				: 	deslocamento.x =- PASSO_CAMERA * ellapsed;
+//										moveu = true;
+//										break;
+	}
 
 }
 
@@ -622,7 +623,7 @@ static void GLFW_MainLoop(GLFWwindow* window) {
    while (!glfwWindowShouldClose(window)) {
 
    		double now = glfwGetTime(); 
-   		double ellapsed = now - last;
+   		ellapsed = now - last;
 
    		if (ellapsed > 1.0f / 30.0f) {
 	   		last = now;
@@ -648,6 +649,8 @@ int main(int argc, char *argv[]) {
 
     initGL(window);
 	initShaders();
+
+	//createAxis();
 
 	GLFW_MainLoop(window);
 /*	float t = INFINITO;

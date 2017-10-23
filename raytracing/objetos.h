@@ -26,7 +26,7 @@ class ObjetoImplicito {
     }; 
     virtual ~ObjetoImplicito(){};
     virtual bool intersecao(const glm::vec3 origem, const glm::vec3 direcao, float &t0, float &t1) = 0;
-
+    virtual glm::vec3 calcularNormal(glm::vec3 origem, glm::vec3 direcao, float tIntersecao) = 0;
 }; 
 
 class Plano: public ObjetoImplicito {
@@ -43,6 +43,10 @@ public:
     bool intersecao(const glm::vec3 origem, const glm::vec3 direcao, float &t0, float &t1) {
         return false; 
     }
+    glm::vec3 calcularNormal(glm::vec3 origem, glm::vec3 direcao, float tIntersecao) {
+        return glm::vec3(0);
+    }
+    
 };
 
 class Esfera:  public ObjetoImplicito {
@@ -106,11 +110,11 @@ public:
         return retorno; 
     }
 
-    //glm::vec3 calcularNormal(glm::vec3 origem, glm::vec3 direcao, float tIntersecao) {
-      //  glm::vec3 ponto = glm::dot((origem + direcao), tIntersecao);
-      //  glm::vec3 normalPonto = glm::normalize(ponto - this->centro);
-      //  return normalPonto;
-    //}
+    glm::vec3 calcularNormal(glm::vec3 origem, glm::vec3 direcao, float tIntersecao) {
+        glm::vec3 ponto = origem + direcao * tIntersecao;
+        glm::vec3 normalPonto = glm::normalize(ponto - this->centro);
+        return normalPonto;
+    }
 
 };
 

@@ -52,6 +52,7 @@ GLuint 	shaderAmbient,
 		shader;
 GLuint 	axisVBO[3];
 GLuint 	meshVBO[3];
+GLuint 	vbo[2];
 GLuint 	meshSize;
 
 bool carregou = false;

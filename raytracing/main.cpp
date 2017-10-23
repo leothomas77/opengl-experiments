@@ -302,25 +302,37 @@ void criarVBOs() {
 	cout << "			#Quantidade de vertices= " << meshSize << endl;	
 }
 
-
-void desenharPixels(vec3 *raw) {
-	
-	int attrV, attrC, attrN;
-	GLuint vbo;
-	glGenBuffers(1, &vbo);
+void alocarBuffer(unsigned int *raw, vec3 *pixels) {
+	glGenBuffers(2, vbo);
 	glUseProgram(shader);
 	
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, WIDTH * HEIGHT * sizeof(vec3), raw, GL_STATIC_DRAW);
-	GLint aPosition = glGetAttribLocation(shader, "aPosition");
-	glVertexAttribPointer(aPosition, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(aPosition);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, WIDTH * HEIGHT * sizeof(unsigned int), raw, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	glBufferData(GL_ARRAY_BUFFER, WIDTH * HEIGHT * sizeof(vec3), pixels, GL_STATIC_DRAW);
+}
+
+
+void desenharPixels(unsigned int *raw, vec3 *pixels) {
 	
+	int attrV, attrC, attrN;
+	attrV = glGetAttribLocation(shader, "aPosition");
+	glVertexAttribPointer(attrV, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(attrV);
 	
+	attrC = glGetAttribLocation(shader, "aColor");
+	glVertexAttribPointer(attrC, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(attrC);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glBindVertexArray(vbo);
+	glBindVertexArray(vbo[0]);
 	glDrawArrays(GL_POINT, 0, WIDTH * HEIGHT);
+
+	glDisableVertexAttribArray(attrV);
+	glDisableVertexAttribArray(attrC);
+		
 	/*
 	glUseProgram(shader);
 
@@ -419,35 +431,33 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 	cout << "Percorrendo viewport de " << winWidth * winHeight << " pixels" << endl;	
 	double inicio = glfwGetTime(); 
 	origemRaio = glm::vec3(0.0f, 0.0f, 0.0f);
-	vec3 pixels[WIDTH * HEIGHT];
-	vec3 *raw = pixels;
-	vec3 *pixelsAux = pixels;
+	unsigned int viewport[WIDTH * HEIGHT], *viewportAux = viewport;
+	unsigned int *ptrViewport = viewport;
+	vec3 cores[WIDTH * HEIGHT], *coresAux = cores;
+	vec3 *ptrCores = cores;
 	
 	if (!carregou) {
-		for (unsigned y = 0; y < winHeight; y++) {
-			for (unsigned x = 0; x < winWidth; x++) {
-				
+		for (unsigned x = 0; x < winWidth; x++) {
+			*ptrViewport = x;
+			ptrViewport++;
+			for (unsigned y = 0; y < winHeight; y++) {
+				*ptrViewport = y;
+				ptrViewport++;
+
 				float xTransformada = (2 * ((x + 0.5) * invWidth) - 1) * angulo * aspectratio;
 				float yTransformada = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
 				
 				direcaoRaio = glm::normalize(glm::vec3(xTransformada, yTransformada, -1));
-				//if (x == winWidth/2 && y == winHeight / 2 ) {
-				//	cout << " direcao raio: x,y,z: (" << direcaoRaio.x << "," << direcaoRaio.y << "," << direcaoRaio.z << ")" << endl;
-				//	cout << " modulo raio: " << sqrt( direcaoRaio.x*direcaoRaio.x + direcaoRaio.y*direcaoRaio.y + direcaoRaio.z*direcaoRaio.z ) << endl;
-				//}
-				*raw = tracarRaio(origemRaio, direcaoRaio, objetos, vboVertices, vboColors, vboNormals);
-				raw++;
+				*ptrCores = tracarRaio(origemRaio, direcaoRaio, objetos, vboVertices, vboColors, vboNormals);
+				ptrCores++;
 			}
 		}
 		carregou = true;
 	
 	}
 	
-
-
-	//criarVBOs();
-
-	desenharPixels(raw);
+	alocarBuffer(viewportAux, coresAux);
+	desenharPixels(viewportAux, coresAux);
 
 	//salvarImagem(window, pixelsAux);
 	//glfwSetWindowShouldClose(window, true);

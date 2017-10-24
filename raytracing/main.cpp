@@ -289,6 +289,15 @@ void drawAxis() {
 }
 
 void drawPoints() {
+	glBindBuffer(GL_ARRAY_BUFFER, pointsVBO[2]);
+	glDrawArrays(GL_POINTS, 0, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0); 
+	
+	
+   // glBindVertexArray(pointsVBO[2]);
+   // glDrawArrays(GL_POINTS, 0, 4);
+   // glFlush(); 
+	/*
 	int attrV, attrC; 
 	
 	glBindBuffer(GL_ARRAY_BUFFER, pointsVBO[0]); 		
@@ -316,6 +325,7 @@ void drawPoints() {
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0); 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 	
+	*/
 }
 		
 /// ***********************************************************************
@@ -437,13 +447,14 @@ void desenharPixels(vector<GLfloat> &vertices, vector<GLfloat> &pixels) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
 }
 
+
 void display(void) { 
 	
 		angleY += 0.01;
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-	
-		glm::mat4 P 	= glm::perspective( 90.0, 1.0, 0.01, 20.0);
+		
+		glm::mat4 P 	= glm::perspective( 70.0, 1.0, 0.01, 20.0);
 		glm::mat4 V 	= glm::lookAt(	glm::vec3(6.0, 6.0, 6.0),
 										glm::vec3(0.0, 0.0, 0.0), 
 										glm::vec3(0.0, 1.0, 0.0) );
@@ -459,6 +470,7 @@ void display(void) {
 		
 		//if (drawRef) 
 			drawAxis();
+			drawPoints();
 	/*		glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
 			glOrtho(-50, 50, -50, 50, -1, 1);
@@ -630,6 +642,7 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(MVP));
 
 	drawAxis();
+	//drawPoints();
 
 	cout << "Total de pixels " << cores.size() / 4 << endl;
 	//alocarBuffer(vboVertices, cores);
@@ -649,9 +662,7 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 	cout << "Duracao aproximada:  " << ms / 1000 << " segundos " << endl;	
 	
 	
-	//shade(lightPos, camPos, MVP, normalMat, ModelMat);
 
-	  //drawAxis();
 	  
 	glUseProgram(0);	
 	  

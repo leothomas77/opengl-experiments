@@ -52,7 +52,9 @@ GLuint 	shaderAmbient,
 		shader;
 GLuint 	axisVBO[3];
 GLuint 	meshVBO[3];
-GLuint 	vbo[2];
+GLuint 	pointsVBO[3];
+
+GLuint 	vbo[3];
 GLuint 	meshSize;
 
 bool carregou = false;
@@ -60,7 +62,6 @@ bool carregou = false;
 glm::vec3 deslocamento(0);
 #define PASSO_CAMERA 3.0f
 float 	velocidade = 3.0f;
-double 	ellapsed = 0; //tempo decorrido entre 2 amostras no loop principal
 bool 	moveu = false;
 
 

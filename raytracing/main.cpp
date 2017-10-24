@@ -178,22 +178,25 @@ void createVBOs(const aiScene *sc) {
 
 void createAxis() {
 
-GLfloat vertices[]  = 	{ 	0.0, 0.0, 0.0,
-							scene_max.x*2, 0.0, 0.0,
-							0.0, scene_max.y*2, 0.0,
-							0.0, 0.0, scene_max.z*2
-						}; 
+	GLfloat vertices[]  = 	{ 	
+		0.0, 0.0, 0.0,
+		5.0, 0.0, 0.0,
+		0.0, 5.0, 0.0,
+		0.0, 0.0, 5.0
+	}; 
 
-GLuint lines[]  = 	{ 	0, 3,
-						0, 2,
-						0, 1
-					}; 
+	GLuint lines[]  = 	{ 	
+		0, 1,
+		0, 2,
+		0, 3
+	}; 
 
-GLfloat colors[]  = { 	1.0, 1.0, 1.0, 1.0,
-						1.0, 0.0, 0.0, 1.0,
-						0.0, 1.0, 0.0, 1.0,
-						0.0, 0.0, 1.0, 1.0
-					}; 
+	GLfloat colors[]  = { 	
+		1.0, 1.0, 1.0, 1.0,
+		1.0, 0.0, 0.0, 1.0,
+		0.0, 1.0, 0.0, 1.0,
+		0.0, 0.0, 1.0, 1.0
+}; 
 
 	
 	
@@ -215,33 +218,104 @@ GLfloat colors[]  = { 	1.0, 1.0, 1.0, 1.0,
 					lines, GL_STATIC_DRAW);
 	
 }
+
+void createPoints() {
+	GLfloat vertices[]  = 	{ 	
+		1.0, -2.0, 1.0,
+		1.0, 1.0, 1.0,
+		-1.0, -3.0, 2.0,
+		-1.0, -2.0, -1.0
+	}; 	
+
+	GLfloat colors[]  = { 	
+		1.0, 1.0, 1.0, 1.0,
+		1.0, 0.0, 0.0, 1.0,
+		0.0, 1.0, 0.0, 1.0,
+		0.0, 0.0, 1.0, 1.0
+	}; 
+
+	GLfloat verticesAux[]  = 	{ 	
+		1.0, -2.0, 1.0,
+		1.0, 1.0, 1.0,
+		-1.0, -3.0, 2.0,
+		-1.0, -2.0, -1.0
+	}; 	
+
+	glGenBuffers(3, pointsVBO);
+	
+	glBindBuffer(	GL_ARRAY_BUFFER, pointsVBO[0]);
+
+	glBufferData(	GL_ARRAY_BUFFER, 4*3*sizeof(float), 
+					vertices, GL_STATIC_DRAW);
+
+	glBindBuffer(	GL_ARRAY_BUFFER, pointsVBO[1]);
+
+	glBufferData(	GL_ARRAY_BUFFER, 4*4*sizeof(float), 
+					colors, GL_STATIC_DRAW);
+
+	glBindBuffer(	GL_ELEMENT_ARRAY_BUFFER, pointsVBO[2]);
+
+	glBufferData(	GL_ELEMENT_ARRAY_BUFFER, 4*3*sizeof(float), 
+					verticesAux, GL_STATIC_DRAW);
+
+}
 		
 /// ***********************************************************************
 /// **
 /// ***********************************************************************
 
 void drawAxis() {
-
-int attrV, attrC; 
 	
-	glBindBuffer(GL_ARRAY_BUFFER, axisVBO[0]); 		
+	int attrV, attrC; 
+		
+		glBindBuffer(GL_ARRAY_BUFFER, axisVBO[0]); 		
+		attrV = glGetAttribLocation(shader, "aPosition");
+		glVertexAttribPointer(attrV, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(attrV);
+	
+		glBindBuffer(GL_ARRAY_BUFFER, axisVBO[1]); 		
+		attrC = glGetAttribLocation(shader, "aColor");
+		glVertexAttribPointer(attrC, 4, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(attrC);
+	
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, axisVBO[2]);
+		glDrawElements(GL_LINES, 6, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+	
+		glDisableVertexAttribArray(attrV);
+		glDisableVertexAttribArray(attrC);
+	
+		glBindBuffer(GL_ARRAY_BUFFER, 0); 
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
+}
+
+void drawPoints() {
+	int attrV, attrC; 
+	
+	glBindBuffer(GL_ARRAY_BUFFER, pointsVBO[0]); 		
 	attrV = glGetAttribLocation(shader, "aPosition");
 	glVertexAttribPointer(attrV, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(attrV);
 
-	glBindBuffer(GL_ARRAY_BUFFER, axisVBO[1]); 		
+	glBindBuffer(GL_ARRAY_BUFFER, pointsVBO[1]); 		
 	attrC = glGetAttribLocation(shader, "aColor");
 	glVertexAttribPointer(attrC, 4, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(attrC);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, axisVBO[2]);
-	glDrawElements(GL_LINES, 6, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+	glPointSize(10.0f);
+	glColor3f(1.0f, 0.0f, 0.0f);
+	
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pointsVBO[2]);
+	glDrawElements(GL_POINTS, 4, GL_UNSIGNED_INT, 0);
+	
+
+	//glBindBuffer(GL_ARRAY_BUFFER, pointsVBO[0]);
+	//glDrawElements(GL_POINTS, 4, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
 
 	glDisableVertexAttribArray(attrV);
 	glDisableVertexAttribArray(attrC);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0); 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 	
 }
 		
 /// ***********************************************************************
@@ -302,34 +376,57 @@ void criarVBOs() {
 	cout << "			#Quantidade de vertices= " << meshSize << endl;	
 }
 
-void alocarBuffer(unsigned int *raw, GLfloat *pixels) {
-	glGenBuffers(2, vbo);
+void alocarBuffer(vector<GLfloat> vertices, vector<GLfloat> pixels) {
+	cout << "Gerando buffers" << endl;
+	glGenBuffers(3, vbo);
+	cout << "Selecionando shader" << endl;
 	glUseProgram(shader);
 	
+	cout << "Alocando buffer para vertices" << endl;
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, WIDTH * HEIGHT * sizeof(unsigned int), raw, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), vertices.data(), GL_STATIC_DRAW);
 
+	cout << "Alocando buffer para cores" << endl;
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, WIDTH * HEIGHT * sizeof(GLfloat), pixels, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, pixels.size() * sizeof(GLfloat), pixels.data(), GL_STATIC_DRAW);
+
+	//cout << "Alocando buffer para elementos" << endl;
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[2]);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, raw.size() / 2, &raw, GL_STATIC_DRAW);
+
+	//TODO Terceiro buffer para armazenar as normais
 }
 
 
-void desenharPixels(unsigned int *raw, GLfloat *pixels) {
+void desenharPixels(vector<GLfloat> &vertices, vector<GLfloat> &pixels) {
 	
-	int attrV, attrC;
+	int attrV, attrC, attrN;
+	cout << "Input atributo aPosition" << endl;
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]); 		
 	attrV = glGetAttribLocation(shader, "aPosition");
-	glVertexAttribPointer(attrV, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(attrV, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(attrV);
 	
+	cout << "Input atributo aColor" << endl;
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]); 		
 	attrC = glGetAttribLocation(shader, "aColor");
-	glVertexAttribPointer(attrC, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(attrC, 4, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(attrC);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
+	cout << "Desenhando " << pixels.size() / 4 << " pontos" << endl;
+	glDrawArrays(GL_POINT, 0, pixels.size() / 4);
+	
 
-	glBindVertexArray(vbo[0]);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[2]);
-    glDrawPixels( WIDTH, HEIGHT, GL_RGB, GL_FLOAT, pixels );
+	//glDrawElements(GL_POINT, WIDTH * HEIGHT, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+
+
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
+	//glDrawPixels(WIDTH , HEIGHT, GL_RGBA, GL_UNSIGNED_INT, raw.data());
+
+	//glBindVertexArray(vbo[0]);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[2]);
+    //glDrawPixels( WIDTH, HEIGHT, GL_RGBA, GL_FLOAT, pixels );
 	
 	//glDrawElements(GL_POINT, WIDTH * HEIGHT, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
 
@@ -340,6 +437,91 @@ void desenharPixels(unsigned int *raw, GLfloat *pixels) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
 }
 
+void display(void) { 
+	
+		angleY += 0.01;
+		
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+	
+		glm::mat4 P 	= glm::perspective( 90.0, 1.0, 0.01, 20.0);
+		glm::mat4 V 	= glm::lookAt(	glm::vec3(6.0, 6.0, 6.0),
+										glm::vec3(0.0, 0.0, 0.0), 
+										glm::vec3(0.0, 1.0, 0.0) );
+		glm::mat4 M 	= glm::mat4(1.0);
+	
+		M = glm::rotate( M, angleY, glm::vec3(0.0, 1.0, 0.0));
+	
+		glm::mat4 MVP 	=  P * V * M;
+	
+		glUseProgram(shader);
+		int loc = glGetUniformLocation( shader, "uMVP" );
+		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(MVP));
+		
+		//if (drawRef) 
+			drawAxis();
+	/*		glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glOrtho(-50, 50, -50, 50, -1, 1);
+		
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+		
+			// draw
+			glColor3ub( 255, 255, 255 );
+			glEnableClientState( GL_VERTEX_ARRAY );
+			glEnableClientState( GL_COLOR_ARRAY );
+			glVertexPointer( 2, GL_FLOAT, sizeof(Point), &points[0].x );
+			glColorPointer( 4, GL_UNSIGNED_BYTE, sizeof(Point), &points[0].r );
+			glPointSize( 3.0 );
+			glDrawArrays( GL_POINTS, 0, points.size() );
+			glDisableClientState( GL_VERTEX_ARRAY );
+			glDisableClientState( GL_COLOR_ARRAY );
+		
+			glFlush();
+	*/
+		//if (drawObj) 
+			//drawCube();
+		   
+		   glUseProgram(0);	
+	}
+
+	/*
+void display2(unsigned int *raw, GLfloat *pixels) {
+	glColor3ub( 255, 255, 255 );
+    glEnableClientState( GL_VERTEX_ARRAY );
+    glEnableClientState( GL_COLOR_ARRAY );
+    glVertexPointer( 2, GL_UNSIGNED_INT, 2 * WIDTH * HEIGHT * sizeof(unsigned int), raw );
+    glColorPointer( 4, GL_FLOAT, sizeof(GLfloat), pixels );
+    glPointSize( 3.0 );
+    //glDrawArrays( GL_POINTS, 0, WIDTH * HEIGHT );
+    glDisableClientState( GL_VERTEX_ARRAY );
+    glDisableClientState( GL_COLOR_ARRAY );
+
+    glFlush();
+}
+*/
+/*void display(void)
+{
+    glClear (GL_COLOR_BUFFER_BIT);
+    GLuint abuffer;
+    glGenVertexArrays(1, &abuffer);
+    glBindVertexArray(abuffer);
+    GLuint buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    Vertices = {{0.3f, 0.3f, 0.5f}, {0.6f, 0.6f, 0.5f}, {0.6f, 0.3f, 0.5f}, {0.3f, 0.6f, 0.5f}};
+    glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(Vertices[0]), &Vertices[0], GL_STATIC_DRAW);
+    glVertexPointer(3, GL_FLOAT, 0, &Vertices[0]);
+    glDrawArrays(GL_POINTS, 0, Vertices.size());
+    glFlush();
+    glBegin(GL_POINTS);
+    glVertex3f(0.25f, 0.25f, 0.5f);
+    glVertex3f(0.25f, 0.75f, 0.5f);
+    glVertex3f(0.75f, 0.75f, 0.5f);
+    glVertex3f(0.75f, 0.25f, 0.5f);
+    glEnd();    
+    glFlush();
+} */
 		
 /// ***********************************************************************
 /// **
@@ -347,7 +529,7 @@ void desenharPixels(unsigned int *raw, GLfloat *pixels) {
 
 void display(GLFWwindow* window) {
 
-//	angleY += 0.02;
+	angleY += 0.02;
 
 float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 
@@ -373,7 +555,7 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 	// ModelMat = glm::rotate( ModelMat, angleY, glm::vec3(0.0, 1.0, 0.0));
 	// ModelMat = glm::rotate( ModelMat, angleZ, glm::vec3(0.0, 0.0, 1.0));
 //Unifica as 3 matrizes em uma 
-	glm::mat4 MVP 			= ProjMat * ViewMat * ModelMat;
+	//glm::mat4 MVP 			= ProjMat * ViewMat * ModelMat;
 //Cria a matriz das normais
 	glm::mat4 normalMat		= glm::transpose(glm::inverse(ModelMat));
 
@@ -404,33 +586,26 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 	cout << "Percorrendo viewport de " << winWidth * winHeight << " pixels" << endl;	
 	double inicio = glfwGetTime(); 
 	origemRaio = glm::vec3(0.0f, 0.0f, 0.0f);
-	unsigned int viewport[WIDTH * HEIGHT], *viewportAux = viewport;
-	unsigned int *ptrViewport = viewport;
-	GLfloat cores[4 * WIDTH * HEIGHT], *coresAux = cores;
-	GLfloat *ptrCores = cores;
+
+	//unsigned int viewport[WIDTH * HEIGHT], *viewportAux = viewport;
+	//std::vector<unsigned int> viewport;
+	std::vector<GLfloat> cores;
 	vec3 cor = vec3(0);
 	
 	//if (!carregou) {//Para carregar somente uma vez
-		for (unsigned x = 0; x < winWidth; x++) {
-			*ptrViewport = x;
-			ptrViewport++;
-			for (unsigned y = 0; y < winHeight; y++) {
-				*ptrViewport = y;
-				ptrViewport++;
+		for (unsigned int x = 0; x < winWidth; x++) {
+			for (unsigned int y = 0; y < winHeight; y++) {
 
 				float xTransformada = (2 * ((x + 0.5) * invWidth) - 1) * angulo * aspectratio;
 				float yTransformada = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
 				
 				direcaoRaio = glm::normalize(glm::vec3(xTransformada, yTransformada, -1));
 				cor = tracarRaio(origemRaio, direcaoRaio, objetos, vboVertices, vboColors, vboNormals);
-				*ptrCores = cor.x;
-				ptrCores++;
-				*ptrCores = cor.y;
-				ptrCores++;
-				*ptrCores = cor.z;
-				ptrCores++;
-				*ptrCores = 1.0;
-				ptrCores++;
+				cores.push_back(cor.x);
+				cores.push_back(cor.y);
+				cores.push_back(cor.z);
+				cores.push_back(1.0);
+				
 			}
 		}
 		//carregou = true;
@@ -440,10 +615,29 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	glUseProgram(shader);
-	
-	alocarBuffer(viewportAux, coresAux);
-	desenharPixels(viewportAux, coresAux);
 
+	glm::mat4 P 	= glm::perspective( 70.0, 1.0, 0.01, 20.0);
+	glm::mat4 V 	= glm::lookAt(	glm::vec3(6.0, 6.0, 6.0),
+									glm::vec3(0.0, 0.0, 0.0), 
+									glm::vec3(0.0, 1.0, 0.0) );
+	glm::mat4 M 	= glm::mat4(1.0);
+
+	M = glm::rotate( M, angleY, glm::vec3(0.0, 1.0, 0.0));
+
+	glm::mat4 MVP 	=  P * V * M;
+
+	int loc = glGetUniformLocation( shader, "uMVP" );
+	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(MVP));
+
+	drawAxis();
+
+	cout << "Total de pixels " << cores.size() / 4 << endl;
+	//alocarBuffer(vboVertices, cores);
+	//desenharPixels(vboVertices, cores);
+
+	vboColors.clear();
+	vboNormals.clear();
+	vboVertices.clear();
 	//salvarImagem(window, pixelsAux);
 	//glfwSetWindowShouldClose(window, true);
 	
@@ -457,7 +651,10 @@ float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 	
 	//shade(lightPos, camPos, MVP, normalMat, ModelMat);
 
-  	//drawAxis();
+	  //drawAxis();
+	  
+	glUseProgram(0);	
+	  
 
 }
 
@@ -515,10 +712,13 @@ void initGL(GLFWwindow* window) {
 	cout << "Opengl Render : " << glGetString(GL_RENDERER) << endl;
 	cout << "Opengl Shading Language Version : " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
 
-	glPointSize(3.0);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_NORMALIZE);
+	int w, h;
+	
+		glfwGetFramebufferSize(window, &w, &h);
+	
+		glViewport(0, 0, w, h);
+		glPointSize(3.0);
+		glEnable(GL_DEPTH_TEST);
 }
 
 /* ************************************************************************* */
@@ -619,6 +819,8 @@ static GLFWwindow* initGLFW(char* nameWin, int w, int h) {
 
 	glfwSwapInterval(1);
 
+	last = glfwGetTime();	
+
 	return (window);
 }
 
@@ -631,11 +833,11 @@ static void GLFW_MainLoop(GLFWwindow* window) {
    while (!glfwWindowShouldClose(window)) {
 
    		double now = glfwGetTime(); 
-   		ellapsed = now - last;
+   		double ellapsed = now - last;
 
    		if (ellapsed > 1.0f / 30.0f) {
 	   		last = now;
-	        display(window);
+	        display();
 	        glfwSwapBuffers(window);
 	    	}
 
@@ -658,8 +860,8 @@ int main(int argc, char *argv[]) {
     initGL(window);
 	initShaders();
 
-	//createAxis();
-
+	createAxis();
+	createPoints();	
 	GLFW_MainLoop(window);
 /*	float t = INFINITO;
 	Esfera *objeto = new Esfera(100.0, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0));

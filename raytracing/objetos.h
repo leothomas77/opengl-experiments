@@ -11,10 +11,12 @@
 #include <glm/vec3.hpp>
 
 using namespace std;
+using namespace glm;
+
 struct Superficie {
-    glm::vec3 corRGB; 
-    glm::vec3 especular;
-    glm::vec3 difusa;
+    vec3 corRGB; 
+    vec3 especular;
+    vec3 difusa;
     float solidez, espelhamento, transparencia;
 };
 
@@ -22,29 +24,25 @@ class ObjetoImplicito {
  public: 
     Superficie superficie;  
     ObjetoImplicito(){
-        superficie.corRGB = glm::vec3(0,0,0);
+        superficie.corRGB = vec3(0,0,0);
     }; 
     virtual ~ObjetoImplicito(){};
-    virtual bool intersecao(const glm::vec3 origem, const glm::vec3 direcao, float &t0, float &t1) = 0;
-    virtual glm::vec3 calcularNormal(glm::vec3 origem, glm::vec3 direcao, float tIntersecao) = 0;
+    virtual bool intersecao(const vec3 origem, const vec3 direcao, float &t0, float &t1) = 0;
+    virtual vec3 calcularNormal(vec3 origem, vec3 direcao, float tIntersecao) = 0;
 }; 
 
 class Plano: public ObjetoImplicito {
 public:
-    glm::vec3 normal = glm::vec3(0);
-    glm::vec3 p0 = glm::vec3(0);
-
-    Plano(const glm::vec3 p0, glm::vec3 normal) {
-        this->p0 = p0;
-        this->normal = normal;
+   Plano(const vec3 p0, vec3 normal) {
+        
     }
     ~Plano() {} 
 
-    bool intersecao(const glm::vec3 origem, const glm::vec3 direcao, float &t0, float &t1) {
+    bool intersecao(const vec3 origem, const vec3 direcao, float &t0, float &t1) {
         return false; 
     }
-    glm::vec3 calcularNormal(glm::vec3 origem, glm::vec3 direcao, float tIntersecao) {
-        return glm::vec3(0);
+    vec3 calcularNormal(vec3 origem, vec3 direcao, float tIntersecao) {
+        return vec3(0);
     }
     
 };
@@ -52,22 +50,22 @@ public:
 class Esfera:  public ObjetoImplicito {
 public:
     float raio; 
-    glm::vec3 centro;
+    vec3 centro;
     Esfera(){};
-    Esfera(float raio, glm::vec3 centro, glm::vec3 corRGB) {
+    Esfera(float raio, vec3 centro, vec3 corRGB) {
         this->raio = raio;
         this->centro = centro;
         this->superficie.corRGB = corRGB;
     }  
     ~Esfera() {} 
-    bool intersecao(const glm::vec3 origem, const glm::vec3 direcao, float &t0, float &t1) {
+    bool intersecao(const vec3 origem, const vec3 direcao, float &t0, float &t1) {
     /* 
         bool retorno = false;
         //cout << "intersecao esfera..." << endl;
-        glm::vec3 distancia = origem - centro; 
-        float a = glm::dot(distancia, distancia);
-        float b = 2 * glm::dot(direcao, distancia); 
-        float c = glm::dot(distancia, distancia) - raio * raio; 
+        vec3 distancia = origem - centro; 
+        float a = dot(distancia, distancia);
+        float b = 2 * dot(direcao, distancia); 
+        float c = dot(distancia, distancia) - raio * raio; 
         cout << "a: " << a << endl;
         cout << "b: " << b << endl;
         cout << "c: " << c << endl;
@@ -79,11 +77,15 @@ public:
         
         return retorno; 
 */
-        glm::vec3 l = this->centro - origem;
-        float tca = glm::dot(l, direcao);
-        if (tca < 0) return false;
-        float d2 = glm::dot(l, l) - tca * tca;
-        if (d2 > this->raio * this-> raio) return false;
+        vec3 l = this->centro - origem;
+        float tca = dot(l, direcao);
+        if (tca < 0) {
+            return false;
+        }
+        float d2 = dot(l, l) - tca * tca;
+        if (d2 > this->raio * this-> raio) {
+            return false;
+        }
         float thc = sqrt(this->raio * this-> raio - d2);
         t0 = tca - thc;
         t1 = tca + thc;
@@ -110,9 +112,9 @@ public:
         return retorno; 
     }
 
-    glm::vec3 calcularNormal(glm::vec3 origem, glm::vec3 direcao, float tIntersecao) {
-        glm::vec3 ponto = origem + direcao * tIntersecao;
-        glm::vec3 normalPonto = glm::normalize(ponto - this->centro);
+    vec3 calcularNormal(vec3 origem, vec3 direcao, float tIntersecao) {
+        vec3 ponto = origem + direcao * tIntersecao;
+        vec3 normalPonto = normalize(ponto - this->centro);
         return normalPonto;
     }
 

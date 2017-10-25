@@ -26,16 +26,12 @@
 #include <GLFW/glfw3.h>
 
 #include "initShaders.h"
-#include "raycasting.h"
 #include "objetos.h"
 #include "globals.h"
+#include "raycasting.h"
 
 using namespace std;
 using namespace glm;
-
-int nanoToMili(double nanoseconds) {
-    return (int)(nanoseconds*0x431BDE82)>>18;
-}
 
 /* ---------------------------------------------------------------------------- */
 void get_bounding_box_for_node	(	const struct aiNode* nd,
@@ -133,48 +129,22 @@ int traverseScene(	const aiScene *sc, const aiNode* nd) {
 }
 
 /// ***********************************************************************
-/// **
-/// ***********************************************************************
+void criarObjetos() {
+	cout << "Criando objetos " << endl;	
+    
+	Esfera *esfera1 = new Esfera(0.5, vec3(0.0, 0.0, -5.0), vec3(1.0, 0.0, 0.0));
+	Esfera *esfera2 = new Esfera(0.5, vec3(3.0, 0.0, -5.0), vec3(0.0, 1.0, 0.0));
+	Esfera *esfera3 = new Esfera(0.5, vec3(-3.0, 0.0, -5.0), vec3(0.0, 0.0, 1.0));
+	Esfera *esfera4 = new Esfera(0.5, vec3(1.5, 0.0, -5.0), vec3(1.0, 1.0, 0.0));
+	Esfera *esfera5 = new Esfera(0.8, vec3(-1.5, 0.0, -5.0), vec3(0.0, 1.0, 1.0));
 
-void createVBOs(const aiScene *sc) {
+	objetos.push_back(esfera1);
+	objetos.push_back(esfera2);
+	objetos.push_back(esfera5);
+	objetos.push_back(esfera3);
+	objetos.push_back(esfera4);
 
-	int totVertices = 0;
-	cout << "Scene:	 	#Meshes 	= " << sc->mNumMeshes << endl;
-	cout << "			#Textures	= " << sc->mNumTextures << endl;
-
-	totVertices = traverseScene(sc, sc->mRootNode);
-
-	cout << "			#Vertices	= " << totVertices << endl;
-	cout << "			#vboVertices= " << vboVertices.size() << endl;
-	cout << "			#vboColors= " << vboColors.size() << endl;
-	cout << "			#vboNormals= " << vboNormals.size() << endl;
-
-	glGenBuffers(3, meshVBO);
-	
-	glBindBuffer(	GL_ARRAY_BUFFER, meshVBO[0]);
-
-	glBufferData(	GL_ARRAY_BUFFER, vboVertices.size()*sizeof(float), 
-					vboVertices.data(), GL_STATIC_DRAW);
-
-	glBindBuffer(	GL_ARRAY_BUFFER, meshVBO[1]);
-
-	glBufferData(	GL_ARRAY_BUFFER, vboColors.size()*sizeof(float), 
-					vboColors.data(), GL_STATIC_DRAW);
-
-	if (vboNormals.size() > 0) {
-		glBindBuffer(	GL_ARRAY_BUFFER, meshVBO[2]);
-
-		glBufferData(	GL_ARRAY_BUFFER, vboNormals.size()*sizeof(float), 
-						vboNormals.data(), GL_STATIC_DRAW);
-		}	
-
-	meshSize = vboVertices.size() / 3;
-	cout << "			#meshSize= " << meshSize << endl;
 }
-
-/// ***********************************************************************
-/// **
-/// ***********************************************************************
 
 void createAxis() {
 
@@ -196,9 +166,7 @@ void createAxis() {
 		1.0, 0.0, 0.0, 1.0,
 		0.0, 1.0, 0.0, 1.0,
 		0.0, 0.0, 1.0, 1.0
-}; 
-
-	
+	}; 
 	
 	glGenBuffers(3, axisVBO);
 
@@ -454,19 +422,19 @@ void display(void) {
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 		
-		glm::mat4 P 	= glm::perspective( 70.0, 1.0, 0.01, 20.0);
-		glm::mat4 V 	= glm::lookAt(	glm::vec3(6.0, 6.0, 6.0),
-										glm::vec3(0.0, 0.0, 0.0), 
-										glm::vec3(0.0, 1.0, 0.0) );
-		glm::mat4 M 	= glm::mat4(1.0);
+		mat4 P 	= perspective( 70.0, 1.0, 0.01, 20.0);
+		mat4 V 	= lookAt(	vec3(6.0, 6.0, 6.0),
+										vec3(0.0, 0.0, 0.0), 
+										vec3(0.0, 1.0, 0.0) );
+		mat4 M 	= mat4(1.0);
 	
-		M = glm::rotate( M, angleY, glm::vec3(0.0, 1.0, 0.0));
+		M = rotate( M, angleY, vec3(0.0, 1.0, 0.0));
 	
-		glm::mat4 MVP 	=  P * V * M;
+		mat4 MVP 	=  P * V * M;
 	
 		glUseProgram(shader);
 		int loc = glGetUniformLocation( shader, "uMVP" );
-		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(MVP));
+		glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(MVP));
 		
 		//if (drawRef) 
 			drawAxis();
@@ -541,165 +509,115 @@ void display2(unsigned int *raw, GLfloat *pixels) {
 
 void display(GLFWwindow* window) {
 
-	angleY += 0.02;
+	//angleY += 0.02;
 
-float Max = 1.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
+	float Max = 5.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 
-// Posiciona a luz
-	glm::vec3 lightPos	= glm::vec3(Max, Max, 0.0);
-//Posiciona a camera		
-	glm::vec3 camPos	= glm::vec3(distanciaCamera * Max,  distanciaCamera * Max, distanciaCamera * Max);
-//Posiciona a direcao da camera	
-	glm::vec3 lookAt	= glm::vec3(scene_center.x, scene_center.y, scene_center.z);
-//Posiciona orientacao da camera	
-	glm::vec3 up		= glm::vec3(0.0, 1.0, 0.0);
-//Cria a matriz de transformacao do ponto de vista		
-	glm::mat4 ViewMat	= glm::lookAt( 	camPos, 
-										lookAt, 
-										up);
-//Cria a matriz de transfornacao da perspectiva
-	glm::mat4 ProjMat 	= glm::perspective( 70.0, 1.0, 0.01, 100.0);
-//Cria a matriz de posicionamento do modelo
-	glm::mat4 ModelMat 	= glm::mat4(1.0);
+	vec3 lightPos	= vec3(Max, Max, 0.0);
+	//vec3 camPos		= vec3(distanciaCamera * Max,  distanciaCamera * Max, distanciaCamera * Max);
+	//vec3 lookAt		= vec3(scene_center.x, scene_center.y, scene_center.z);
+	//vec3 up			= vec3(0.0, 1.0, 0.0);
+	//mat4 ViewMat	= glm::lookAt(camPos, lookAt, up);
+	//mat4 ProjMat 	= perspective( 70.0, 1.0, 0.01, 100.0);
+	//mat4 ModelMat 	= mat4(1.0);
 
 //Rotacao do modelo (movimentacao da cena)
-	// ModelMat = glm::rotate( ModelMat, angleX, glm::vec3(1.0, 0.0, 0.0));
-	// ModelMat = glm::rotate( ModelMat, angleY, glm::vec3(0.0, 1.0, 0.0));
-	// ModelMat = glm::rotate( ModelMat, angleZ, glm::vec3(0.0, 0.0, 1.0));
+	// ModelMat = rotate( ModelMat, angleX, vec3(1.0, 0.0, 0.0));
+	// ModelMat = rotate( ModelMat, angleY, vec3(0.0, 1.0, 0.0));
+	// ModelMat = rotate( ModelMat, angleZ, vec3(0.0, 0.0, 1.0));
 //Unifica as 3 matrizes em uma 
-	//glm::mat4 MVP 			= ProjMat * ViewMat * ModelMat;
-//Cria a matriz das normais
-	glm::mat4 normalMat		= glm::transpose(glm::inverse(ModelMat));
+	//mat4 MVP 			= ProjMat * ViewMat * ModelMat;
+	//mat4 normalMat		= transpose(inverse(ModelMat));
 
 //Inicia o tracado de raios de cada ponto da tela ate o objeto
 	
-	glm::vec3 origemRaio, direcaoRaio;
+	vec3 origemRaio, direcaoRaio;
 	
-	Esfera *esfera1 = new Esfera(0.5, glm::vec3(0.0, 0.0, -5.0), glm::vec3(1.0, 0.0, 0.0));
-	Esfera *esfera2 = new Esfera(0.5, glm::vec3(3.0, 0.0, -5.0), glm::vec3(0.0, 1.0, 0.0));
-	Esfera *esfera3 = new Esfera(0.5, glm::vec3(-3.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 1.0));
-	Esfera *esfera4 = new Esfera(0.5, glm::vec3(1.5, 0.0, -5.0), glm::vec3(1.0, 1.0, 0.0));
-	Esfera *esfera5 = new Esfera(0.8, glm::vec3(-1.5, 0.0, -5.0), glm::vec3(0.0, 1.0, 1.0));
-	//Plano  *plano = new Plano;
-
-	std::vector<ObjetoImplicito*> objetos;
-	objetos.push_back(esfera1);
-	objetos.push_back(esfera2);
-	objetos.push_back(esfera5);
-	objetos.push_back(esfera3);
-	objetos.push_back(esfera4);
-	//objetos.push_back(plano);
-	
-
 	float invWidth = 1 / float(winWidth), invHeight = 1 / float(winHeight);
-    float fov = 83, aspectratio = winWidth / float(winHeight);
+    float fov = 60, aspectratio = winWidth / float(winHeight);
     float angulo = tan(M_PI * 0.5 * fov / 180.);
 
 	cout << "Percorrendo viewport de " << winWidth * winHeight << " pixels" << endl;	
 	double inicio = glfwGetTime(); 
-	origemRaio = glm::vec3(0.0f, 0.0f, 0.0f);
+	origemRaio = vec3(0.0f, 0.0f, 0.0f);
 
-	//unsigned int viewport[WIDTH * HEIGHT], *viewportAux = viewport;
-	//std::vector<unsigned int> viewport;
-	std::vector<GLfloat> cores;
-	vec3 cor = vec3(0);
+	vector<vec3> cores;
+	vec3 cor;
 	
-	//if (!carregou) {//Para carregar somente uma vez
+	cout << "Objetos carregados: " << objetos.size() << endl;	
+	
+	for (unsigned int y = 0; y < winHeight; y++) {
 		for (unsigned int x = 0; x < winWidth; x++) {
-			for (unsigned int y = 0; y < winHeight; y++) {
 
-				float xTransformada = (2 * ((x + 0.5) * invWidth) - 1) * angulo * aspectratio;
-				float yTransformada = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
-				
-				direcaoRaio = glm::normalize(glm::vec3(xTransformada, yTransformada, -1));
-				cor = tracarRaio(origemRaio, direcaoRaio, objetos, vboVertices, vboColors, vboNormals);
-				cores.push_back(cor.x);
-				cores.push_back(cor.y);
-				cores.push_back(cor.z);
-				cores.push_back(1.0);
-				
-			}
+			float xMundo = (2 * ((x + 0.5) * invWidth) - 1) * angulo * aspectratio;
+			float yMundo = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
+			
+			direcaoRaio = normalize(vec3(xMundo, yMundo, -1));
+			cor = tracarRaio(origemRaio, direcaoRaio, objetos, vboVertices, vboColors, vboNormals, lightPos);
+			cores.push_back(cor);
 		}
-		//carregou = true;
+	}
+
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	//}
+	//glUseProgram(shader);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	glUseProgram(shader);
+	//mat4 P 	= perspective( 70.0, 1.0, 0.01, 20.0);
+	//mat4 V 	= glm::lookAt(	vec3(6.0, 6.0, 6.0),
+	//								vec3(0.0, 0.0, 0.0), 
+	//								vec3(0.0, 1.0, 0.0) );
+	//mat4 M 	= mat4(1.0);
 
-	glm::mat4 P 	= glm::perspective( 70.0, 1.0, 0.01, 20.0);
-	glm::mat4 V 	= glm::lookAt(	glm::vec3(6.0, 6.0, 6.0),
-									glm::vec3(0.0, 0.0, 0.0), 
-									glm::vec3(0.0, 1.0, 0.0) );
-	glm::mat4 M 	= glm::mat4(1.0);
+	//M = rotate( M, angleY, vec3(0.0, 1.0, 0.0));
 
-	M = glm::rotate( M, angleY, glm::vec3(0.0, 1.0, 0.0));
+	//mat4 MVP 	=  P * V * M;
 
-	glm::mat4 MVP 	=  P * V * M;
+	//int loc = glGetUniformLocation( shader, "uMVP" );
+	//glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(MVP));
 
-	int loc = glGetUniformLocation( shader, "uMVP" );
-	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(MVP));
-
-	drawAxis();
+	//drawAxis();
 	//drawPoints();
 
-	cout << "Total de pixels " << cores.size() / 4 << endl;
 	//alocarBuffer(vboVertices, cores);
 	//desenharPixels(vboVertices, cores);
 
-	vboColors.clear();
-	vboNormals.clear();
-	vboVertices.clear();
-	//salvarImagem(window, pixelsAux);
-	//glfwSetWindowShouldClose(window, true);
+	salvarImagem(window, cores, winWidth, winHeight);
 	
 	double fim = glfwGetTime();
 	double duracao = fim - inicio ;
 	int ms = nanoToMili(duracao);
 	
-		
+	vboColors.clear();
+	vboNormals.clear();
+	vboVertices.clear();
+	cores.clear();	
+	
 	cout << "Duracao aproximada:  " << ms / 1000 << " segundos " << endl;	
-	
-	
-
-	  
-	glUseProgram(0);	
-	  
-
-}
-
-void salvarImagem(GLFWwindow* window, vec3 *pixels) {
+  
 	glfwSetWindowShouldClose(window, true);
- 	std::ofstream ofs("./imagem.ppm", std::ios::out | std::ios::binary);
- 	ofs << "P6\n" << winWidth << " " << winHeight << "\n255\n";
-	for (unsigned i = 0; i < winWidth * winHeight; ++i) {
-		ofs << (unsigned char)(std::min(float(1), pixels[i].x) * 255) <<
-		(unsigned char)(std::min(float(1), pixels[i].y) * 255) <<
-		(unsigned char)(std::min(float(1), pixels[i].z) * 255);
-	}
-	ofs.close();
+	
+	glUseProgram(0);	
+	
 }
 
 
-
-void shade(glm::vec3 lightPos, glm::vec3 camPos, glm::mat4 MVP, glm::mat4 normalMat, glm::mat4 ModelMat) {
+void shade(vec3 lightPos, vec3 camPos, mat4 MVP, mat4 normalMat, mat4 ModelMat) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(shader);
 		
 	int loc = glGetUniformLocation( shader, "uMVP" );
-	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(MVP));
+	glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(MVP));
 
 	if ( (shader == shaderGouraud) || ( shader == shaderPhong) ) {
 		loc = glGetUniformLocation( shader, "uN" );
-		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(normalMat));
+		glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(normalMat));
 		loc = glGetUniformLocation( shader, "uM" );
-		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(ModelMat));
+		glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(ModelMat));
 		loc = glGetUniformLocation( shader, "uLPos" );
-		glUniform3fv(loc, 1, glm::value_ptr(lightPos));
+		glUniform3fv(loc, 1, value_ptr(lightPos));
 		loc = glGetUniformLocation( shader, "uCamPos" );
-		glUniform3fv(loc, 1, glm::value_ptr(camPos));
+		glUniform3fv(loc, 1, value_ptr(camPos));
 		}
 }
 
@@ -714,7 +632,7 @@ void initGL(GLFWwindow* window) {
 	if (glewInit()) {
 		cout << "Unable to initialize GLEW ... exiting" << endl;
 		exit(EXIT_FAILURE);
-		}
+	}
 		
 	cout << "Status: Using GLEW " << glewGetString(GLEW_VERSION) << endl;	
 	
@@ -725,11 +643,11 @@ void initGL(GLFWwindow* window) {
 
 	int w, h;
 	
-		glfwGetFramebufferSize(window, &w, &h);
-	
-		glViewport(0, 0, w, h);
-		glPointSize(3.0);
-		glEnable(GL_DEPTH_TEST);
+	glfwGetFramebufferSize(window, &w, &h);
+
+	glViewport(0, 0, w, h);
+	glPointSize(3.0);
+	glEnable(GL_DEPTH_TEST);
 }
 
 /* ************************************************************************* */
@@ -793,11 +711,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 			case 'P'				:
 			case 'p'				: 	shader = shaderPhong;
 										break;
-
-//			case 'a'				:
-//			case 'A'				: 	deslocamento.x =- PASSO_CAMERA * ellapsed;
-//										moveu = true;
-//										break;
 	}
 
 }
@@ -848,7 +761,7 @@ static void GLFW_MainLoop(GLFWwindow* window) {
 
    		if (ellapsed > 1.0f / 30.0f) {
 	   		last = now;
-	        display();
+	        display(window);
 	        glfwSwapBuffers(window);
 	    	}
 
@@ -872,31 +785,10 @@ int main(int argc, char *argv[]) {
 	initShaders();
 
 	createAxis();
-	createPoints();	
+	criarObjetos();
+	
 	GLFW_MainLoop(window);
-/*	float t = INFINITO;
-	Esfera *objeto = new Esfera(100.0, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0));
-	bool ret = false;
-	ret = objeto->intersecao(glm::vec3(0, 0, 0), glm::vec3(0,0,0), t);
-	if (ret) {
-		cout << "interceptou com t: " << t << endl;
-			
-	}
-*/
-/*
-	float t0=0.0, t1=0.0;
-	bool ret = false;
-	for (int i = 0; i < 100; i++) {
-		float a, b, c;
-		a = rand
-		ret = objeto->calcularRaizesEquacao(2.0, 3.0, 1.0, t0, t1);
-		if (ret) {
-			cout << "t0: " << t0 << endl;
-			cout << "t1: " << t1 << endl;
-			
-		} 
-	}
-*/	
+	
     glfwDestroyWindow(window);
     glfwTerminate();
 

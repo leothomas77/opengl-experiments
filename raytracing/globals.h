@@ -1,17 +1,6 @@
-#ifndef __RTGLOBALS__	
+#ifndef __RTGLOBALS__
 #define __RTGLOBALS__
 
-#include <iostream>
-#include <cfloat>
-#include <vector>
-#include <limits>
-#include <cstdlib>
-#include <cstdio>
-#include <cmath>
-
-#include <fstream>
-#include <vector>
-#include <cassert>
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp> 
@@ -22,6 +11,9 @@
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+
+#include "objetos.h"
+
 
 #ifndef BUFFER_OFFSET 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
@@ -36,15 +28,16 @@
 #define MAX_INTERSECOES 10
 #define MAX_RECURSOES	5
 
-#ifndef WIDTH
-#define WIDTH 600
+#ifndef RT_WIDTH
+#define RT_WIDTH 600
 #endif
 
-#ifndef HEIGHT
-#define HEIGHT 600
+#ifndef RT_HEIGHT
+#define RT_HEIGHT 600
 #endif
 
 using namespace std;
+using namespace glm;
 
 GLuint 	shaderAmbient,
 		shaderGouraud,
@@ -59,7 +52,7 @@ GLuint 	meshSize;
 
 bool carregou = false;
 //Movimento da camera
-glm::vec3 deslocamento(0);
+vec3 deslocamento(0);
 #define PASSO_CAMERA 3.0f
 float 	velocidade = 3.0f;
 bool 	moveu = false;
@@ -71,7 +64,9 @@ vector<GLfloat> vboVertices;
 vector<GLfloat> vboNormals;
 vector<GLfloat> vboColors;
 
-unsigned winWidth 	= WIDTH, winHeight 	= HEIGHT;
+vector<ObjetoImplicito*> objetos;
+
+unsigned int winWidth 	= RT_WIDTH, winHeight 	= RT_HEIGHT;
 
 float 	angleX 	= 	0.0f,
 		angleY	= 	0.0f,

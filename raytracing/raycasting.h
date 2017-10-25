@@ -8,7 +8,7 @@
 #endif
 
 #ifndef BACKGROUND
-	#define BACKGROUND glm::vec3(0.0, 0.0, 0.0)
+	#define BACKGROUND vec3(0.0, 0.0, 0.0)
 #endif
 
 #include <glm/vec3.hpp> 
@@ -19,16 +19,24 @@
 #include "raycasting.h"
 #include "objetos.h"
 
+
+using namespace std;
+using namespace glm;
 /*
 Funcoes para implementacao da tecnica de renderizacao por raycasting
 */
-glm::vec3 tracarRaio(glm::vec3 origem, glm::vec3 direcao, vector<ObjetoImplicito*> objetos, 
-    vector<GLfloat> &vertices, vector<GLfloat> &cores, vector<GLfloat> &normais);
+int nanoToMili(double nanoseconds);
+	
+vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, 
+    vector<GLfloat> &vertices, vector<GLfloat> &cores, vector<GLfloat> &normais, 
+    vec3 posicaoLuz);
 void moveCamera();
 void moveObject();
-void shade(glm::vec3 origemRaio, glm::vec3 direcaoRaio, float t);
-void shade(glm::vec3 lightPos, glm::vec3 camPos, glm::mat4 MVP, glm::mat4 normalMat, glm::mat4 ModelMat);
-void salvarImagem(GLFWwindow* window, glm::vec3 *pixels);
-	
+void shade(vec3 origemRaio, vec3 direcaoRaio, float t);
+void shade(vec3 lightPos, vec3 camPos, mat4 MVP, mat4 normalMat, mat4 ModelMat);
+void salvarImagem(GLFWwindow* window,  vector<vec3> imagem, unsigned width, unsigned height);
+float calcularPhong(vec3 cor, vec3 origem, vec3 direcao, vec3 posicaoLuz, 
+	vec3 normal, vec3 vertice);
+  
 
 #endif //__RAYCASTING__	

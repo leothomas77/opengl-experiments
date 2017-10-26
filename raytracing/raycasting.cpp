@@ -46,6 +46,11 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
     vector<GLfloat> &vertices, vector<GLfloat> &cores, vector<GLfloat> &normais, 
     vec3 posicaoLuz) {
     float t = INFINITO;
+    vec3 especular = vec3(1.0);
+    vec3 difusa = vec3(1.0);
+    vec3 ambiente = vec3(1.0);
+    vec3 atenuacao = vec3(1.0);
+    
     static unsigned int cont = 0;
     vec3 cor = BACKGROUND; vec3 normal = vec3(0); vec3 vertice = vec3(0);
     static unsigned totalVertices = 0;
@@ -75,30 +80,27 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
                 normais.push_back(normal.z);
   
                 cor = objetos.at(i)->superficie.corRGB;
-      
+                ambiente = objetos.at(i)->superficie.ambienteRGB;
+                difusa = objetos.at(i)->superficie.difusaRGB;
+                especular = objetos.at(i)->superficie.especularRGB;
             }
         } 
     } 
-
-    float phong = calcularPhong(cor, origem, direcao, posicaoLuz, normal, vertice);
-    float atenuacao = 0.7;
-    float ambiente = 1.0;
-    return cor * atenuacao * phong * ambiente;
+    vec3 phong = calcularPhong(cor, origem, direcao, posicaoLuz, normal, vertice, difusa, especular);
+    return cor * ambiente * phong;
 }
 
-float calcularPhong(vec3 cor, vec3 origem, vec3 direcao, vec3 posicaoLuz, 
-  vec3 normal, vec3 vertice) {
+vec3 calcularPhong(vec3 cor, vec3 origem, vec3 direcao, vec3 posicaoLuz, 
+  vec3 normal, vec3 vertice, vec3 difusa, vec3 especular) {
     vec3 l = normalize(posicaoLuz - vertice);
-    float kDifusa = 0.8;
     float teta = std::max(dot(l, normal), 0.0f);
 
     vec3 v = normalize(direcao - vertice);
     vec3 refletido = reflect(l*(-1.0f), normal);
     vec3 r = normalize(refletido);
-    float kEspecular = 1.0;
     float omega = std::max(dot(v, r), 0.0f); 
 
-    return kDifusa * teta + kEspecular * pow(omega, 56);
+    return  difusa * teta + especular * (float)pow(omega, 40);
 }
 
 void salvarImagem(GLFWwindow* window,  vector<vec3> imagem, unsigned width, unsigned height) {

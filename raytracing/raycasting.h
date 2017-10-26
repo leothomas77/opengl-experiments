@@ -35,8 +35,8 @@ void moveObject();
 void shade(vec3 origemRaio, vec3 direcaoRaio, float t);
 void shade(vec3 lightPos, vec3 camPos, mat4 MVP, mat4 normalMat, mat4 ModelMat);
 void salvarImagem(GLFWwindow* window,  vector<vec3> imagem, unsigned width, unsigned height);
-float calcularPhong(vec3 cor, vec3 origem, vec3 direcao, vec3 posicaoLuz, 
-	vec3 normal, vec3 vertice);
+vec3 calcularPhong(vec3 cor, vec3 origem, vec3 direcao, vec3 posicaoLuz, 
+	vec3 normal, vec3 vertice, vec3 difusa, vec3 especular);
   
 
 #endif //__RAYCASTING__	

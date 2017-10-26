@@ -15,9 +15,12 @@ using namespace glm;
 
 struct Superficie {
     vec3 corRGB; 
-    vec3 especular;
-    vec3 difusa;
-    float solidez, espelhamento, transparencia;
+    vec3 ambienteRGB = vec3(1.0, 1.0, 1.0);
+    vec3 especularRGB = vec3(1.0, 1.0, 1.0);
+    vec3 difusaRGB = vec3(0.72, 0.72, 0.72);
+    
+    bool espelhamento = false;
+    bool transparencia = false;
 };
 
 class ObjetoImplicito { 
@@ -25,11 +28,51 @@ class ObjetoImplicito {
     Superficie superficie;  
     ObjetoImplicito(){
         superficie.corRGB = vec3(0,0,0);
-    }; 
+    };
+    void setSuperficie(vec3 difusa, vec3 especular) {
+        this->superficie.especularRGB = especular;
+        this->superficie.difusaRGB = difusa;
+    }
     virtual ~ObjetoImplicito(){};
     virtual bool intersecao(const vec3 origem, const vec3 direcao, float &t0, float &t1) = 0;
+    virtual bool intersecao(const vec3 origem, const vec3 direcao, float &t) = 0; 
     virtual vec3 calcularNormal(vec3 origem, vec3 direcao, float tIntersecao) = 0;
 }; 
+
+class Triangulo: public ObjetoImplicito {
+public:
+    vec3 v1, v2, v3; 
+    Triangulo(vec3 v1, vec3 v2, vec3 v3) {
+        this->v1 = v1;
+        this->v2 = v2;
+        this->v3 = v3;
+    } 
+    ~Triangulo() {}
+    float calculaS1(vec3 direcao) {
+        vec3 e1 = this->v2 - this->v1;
+        vec3 e2 = this->v3 - this->v1;
+        vec3 s1 = cross(direcao, e2);
+        float divisor = dot(s1, e1);
+        if (divisor == 0.0) {
+            return 1.0;//TODO verificar aqui
+        }
+        return (float)(1 / divisor);    
+    }
+    float calculaB1(vec3 direcao) {
+        return 0.0;
+    } 
+    float calculaB2(vec3 direcao) {
+        return 0.0;
+    }
+    bool intersecao(const vec3 origem, const vec3 direcao, float &t0, float &t1) {
+        intersecao(origem, direcao, t0);
+    }
+    
+    bool intersecao(const vec3 origem, const vec3 direcao, float &t0) {
+        //float t = INFINITO;
+        //t= parei aqui
+    }
+};
 
 class Plano: public ObjetoImplicito {
 public:
@@ -57,26 +100,11 @@ public:
         this->centro = centro;
         this->superficie.corRGB = corRGB;
     }  
-    ~Esfera() {} 
+    ~Esfera() {}
+    bool intersecao(const vec3 origem, const vec3 direcao, float &t) {
+        return false;
+    }
     bool intersecao(const vec3 origem, const vec3 direcao, float &t0, float &t1) {
-    /* 
-        bool retorno = false;
-        //cout << "intersecao esfera..." << endl;
-        vec3 distancia = origem - centro; 
-        float a = dot(distancia, distancia);
-        float b = 2 * dot(direcao, distancia); 
-        float c = dot(distancia, distancia) - raio * raio; 
-        cout << "a: " << a << endl;
-        cout << "b: " << b << endl;
-        cout << "c: " << c << endl;
-        
-        if (calcularRaizesEquacao(a, b, c, t0, t1)) {
-            //cout << "posui raizes..." << endl;
-            retorno = true;
-        } 
-        
-        return retorno; 
-*/
         vec3 l = this->centro - origem;
         float tca = dot(l, direcao);
         if (tca < 0) {

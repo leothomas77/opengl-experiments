@@ -47,7 +47,7 @@ GLuint 	axisVBO[3];
 GLuint 	meshVBO[3];
 GLuint 	pointsVBO[3];
 
-GLuint 	vbo[3];
+GLuint 	vbo;
 GLuint 	meshSize;
 
 bool carregou = false;

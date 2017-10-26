@@ -28,6 +28,7 @@
 using namespace std;
 using namespace glm;
 
+#define MAX_RECURSOES	3
 
 int nanoToMili(double nanoseconds) {
     return (int)(nanoseconds*0x431BDE82)>>18;
@@ -44,24 +45,26 @@ void shade(vec3 origemRaio, vec3 direcaoRaio, float t) {
 
 vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, 
     vector<GLfloat> &vertices, vector<GLfloat> &cores, vector<GLfloat> &normais, 
-    vec3 posicaoLuz) {
+    vec3 posicaoLuz, unsigned int nivel) {
     float t = INFINITO;
     vec3 especular = vec3(1.0);
     vec3 difusa = vec3(1.0);
     vec3 ambiente = vec3(1.0);
     vec3 atenuacao = vec3(1.0);
-    
-    static unsigned int cont = 0;
-    vec3 cor = BACKGROUND; vec3 normal = vec3(0); vec3 vertice = vec3(0);
+    ObjetoImplicito* objeto = NULL;
+    static unsigned int recursoes = 0;
     static unsigned totalVertices = 0;
-    for(unsigned i = 0; i < objetos.size(); i++) {
+
+    vec3 cor; 
+    vec3 normal = vec3(0); 
+    vec3 vertice = vec3(0);
+
+    for(unsigned int i = 0; i < objetos.size(); i++) {
         float t1 = INFINITO;
         float t0 = INFINITO; 
         //cout << "objeto processando..." << endl;
-
         if (objetos.at(i)->intersecao(origem, direcao, t0, t1)) {
             ///cout << "intersecao... t0" << t0 << " t1" << t1 << endl;
-            
             if (t0 < 0) {
                 t0 = t1;
             }
@@ -69,28 +72,40 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
                 t = t0;
                 totalVertices++;
                 //cout << "objeto tocado..." << totalVertices << " vezes" << endl;
-                vertice = origem + (direcao * t);
-                vertices.push_back(vertice.x);                 
-                vertices.push_back(vertice.y);
-                vertices.push_back(vertice.z);
-  
-                normal = objetos.at(i)->calcularNormal(origem, direcao, t);
-                normais.push_back(normal.x);                 
-                normais.push_back(normal.y);
-                normais.push_back(normal.z);
-  
-                cor = objetos.at(i)->superficie.corRGB;
-                ambiente = objetos.at(i)->superficie.ambienteRGB;
-                difusa = objetos.at(i)->superficie.difusaRGB;
-                especular = objetos.at(i)->superficie.especularRGB;
+                //TODO caso mais de um objeto seja tocado, retornar aquele mais proximo
+                objeto = objetos.at(i);
             }
         } 
-    } 
-    vec3 phong = calcularPhong(cor, origem, direcao, posicaoLuz, normal, vertice, difusa, especular);
-    return cor * ambiente * phong;
+    }
+
+    if (objeto != NULL) {
+        cor = vec3(0);
+        vertice = origem + (direcao * t);
+        normal = objeto->calcularNormal(origem, direcao, t);
+        //cout << "Objeto tocado" << endl;
+        //cout << "Objeto espelhamento" << objeto->superficie.espelhamento << endl;
+        //cout << "Recursoes" << objeto->superficie.espelhamento << endl;
+        if (objeto->superficie.espelhamento && nivel <= MAX_RECURSOES) {
+            //cout << "Objeto espelhado" << endl;
+            //direcao = (-1.0f) * direcao;
+            vec3 raioRefletido = reflect(direcao, normal);
+            raioRefletido = normalize(raioRefletido); 
+            cor = tracarRaio(vertice, raioRefletido, objetos, vertices, cores, normais, posicaoLuz, nivel + 1);
+        } else {
+            cor = objeto->superficie.corRGB;
+            ambiente = objeto->superficie.ambienteRGB;
+            difusa = objeto->superficie.difusaRGB;
+            especular = objeto->superficie.especularRGB;
+
+            vec3 phong = calcularPhong(origem, direcao, posicaoLuz, normal, vertice, difusa, especular);
+            cor = cor * ambiente * phong;
+        }
+    }
+
+    return cor;
 }
 
-vec3 calcularPhong(vec3 cor, vec3 origem, vec3 direcao, vec3 posicaoLuz, 
+vec3 calcularPhong(vec3 origem, vec3 direcao, vec3 posicaoLuz, 
   vec3 normal, vec3 vertice, vec3 difusa, vec3 especular) {
     vec3 l = normalize(posicaoLuz - vertice);
     float teta = std::max(dot(l, normal), 0.0f);

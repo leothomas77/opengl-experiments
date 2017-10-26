@@ -141,7 +141,7 @@ public:
     }
 
     vec3 calcularNormal(vec3 origem, vec3 direcao, float tIntersecao) {
-        vec3 ponto = origem + direcao * tIntersecao;
+        vec3 ponto = origem + (direcao * tIntersecao);
         vec3 normalPonto = normalize(ponto - this->centro);
         return normalPonto;
     }

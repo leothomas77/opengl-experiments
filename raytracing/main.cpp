@@ -37,18 +37,28 @@ using namespace glm;
 void criarObjetos() {
 	cout << "Criando objetos " << endl;	
     
-	Esfera *esfera1 = new Esfera(0.5, vec3(0.0, 0.0, -5.0), vec3(1.0, 0.0, 0.0));
-	Esfera *esfera2 = new Esfera(0.5, vec3(3.0, 0.0, -5.0), vec3(0.0, 1.0, 0.0));
-	Esfera *esfera3 = new Esfera(0.5, vec3(-3.0, 0.0, -5.0), vec3(0.0, 0.0, 1.0));
-	Esfera *esfera4 = new Esfera(0.5, vec3(1.5, 0.0, -5.0), vec3(1.0, 1.0, 0.0));
-	Esfera *esfera5 = new Esfera(0.8, vec3(-1.5, 0.0, -5.0), vec3(0.0, 1.0, 1.0));
+	Esfera *esfera1 = new Esfera(2.0, vec3(0.0, 0.0, -10.0), vec3(1.0, 1.0, 1.0));
+	Esfera *esfera2 = new Esfera(2.0, vec3(5.0, 0.0,-20.0), vec3(0.0, 1.0, 0.0));
+	Esfera *esfera3 = new Esfera(2.0, vec3(-5.0, 0.0, -20.0), vec3(0.0, 0.0, 1.0));
+	Esfera *esfera4 = new Esfera(2.0, vec3(0.0, 0.0, -15.0), vec3(1.0, 1.0, 0.0));
+	Esfera *esfera5 = new Esfera(2.0, vec3(0.0, 0.0, -5.0), vec3(0.0, 1.0, 1.0));
+
+	esfera1->superficie.espelhamento = true;
+
+	esfera2->superficie.espelhamento = false;
+
+	esfera3->superficie.espelhamento = false;
+
+	esfera4->superficie.espelhamento = false;
+
+	esfera5->superficie.espelhamento = false;
 
 	objetos.push_back(esfera1);
 	objetos.push_back(esfera2);
-	objetos.push_back(esfera5);
 	objetos.push_back(esfera3);
 	objetos.push_back(esfera4);
-
+	objetos.push_back(esfera5);
+	
 }
 
 void createAxis() {
@@ -140,13 +150,13 @@ void display(GLFWwindow* window) {
 
 	//angleY += 0.02;
 
-	float Max = 5.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
+	float Max = 30.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 	float distanciaCamera = 1.0;
 	vec3 lightPos	= vec3(Max, Max, 0.0);
 	vec3 camPos	= vec3(0.0f,  0.0f, distanciaCamera);
-	//vec3 lookAt		= vec3(scene_center.x, scene_center.y, scene_center.z);
-	//vec3 up			= vec3(0.0, 1.0, 0.0);
-	//mat4 ViewMat	= glm::lookAt(camPos, lookAt, up);
+	vec3 lookAt		= vec3(scene_center.x, scene_center.y, scene_center.z);
+	vec3 up			= vec3(0.0, 1.0, 0.0);
+	mat4 ViewMat	= glm::lookAt(camPos, lookAt, up);
 	//mat4 ProjMat 	= perspective( 70.0, 1.0, 0.01, 100.0);
 	//mat4 ModelMat 	= mat4(1.0);
 
@@ -163,12 +173,12 @@ void display(GLFWwindow* window) {
 	vec3 origemRaio, direcaoRaio;
 	
 	float invWidth = 1 / float(winWidth), invHeight = 1 / float(winHeight);
-    float fov = 65, aspectratio = winWidth / float(winHeight);
+    float fov = 70, aspectratio = winWidth / float(winHeight);
     float angulo = tan(M_PI * 0.5 * fov / 180.);
 
 	//cout << "Percorrendo viewport de " << winWidth * winHeight << " pixels" << endl;	
 	double inicio = glfwGetTime(); 
-	origemRaio = vec3(0.0f, 0.0f, 1.0f);
+	origemRaio = vec3(0.0f, 5.0f, 10.0f);
 
 	vector<vec3> cores;
 	vec3 cor;
@@ -182,7 +192,7 @@ void display(GLFWwindow* window) {
 			float yMundo = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
 			
 			direcaoRaio = normalize(vec3(xMundo, yMundo, -1));
-			cor = tracarRaio(origemRaio, direcaoRaio, objetos, vboVertices, vboColors, vboNormals, lightPos);
+			cor = tracarRaio(origemRaio, direcaoRaio, objetos, vboVertices, vboColors, vboNormals, lightPos, 0);
 			cores.push_back(cor);
 		}
 	}

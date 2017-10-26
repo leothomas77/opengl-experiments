@@ -26,7 +26,6 @@
 #endif
 
 #define MAX_INTERSECOES 10
-#define MAX_RECURSOES	5
 
 #ifndef RT_WIDTH
 #define RT_WIDTH 600

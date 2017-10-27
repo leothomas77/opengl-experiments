@@ -43,13 +43,10 @@ GLuint 	shaderAmbient,
 		shaderPhong,
 		shader;
 GLuint 	axisVBO[3];
-GLuint 	meshVBO[3];
-GLuint 	pointsVBO[3];
 
 GLuint 	vbo;
 GLuint 	meshSize;
 
-bool carregou = false;
 //Movimento da camera
 vec3 deslocamento(0);
 #define PASSO_CAMERA 3.0f
@@ -58,10 +55,6 @@ bool 	moveu = false;
 
 
 double  last;
-
-vector<GLfloat> vboVertices;
-vector<GLfloat> vboNormals;
-vector<GLfloat> vboColors;
 
 vector<ObjetoImplicito*> objetos;
 

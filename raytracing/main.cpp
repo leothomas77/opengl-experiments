@@ -37,20 +37,35 @@ using namespace glm;
 void criarObjetos() {
 	cout << "Criando objetos " << endl;	
     
-	Esfera *esfera1 = new Esfera(2.0, vec3(0.0, 0.0, -10.0), vec3(1.0, 1.0, 1.0));
-	Esfera *esfera2 = new Esfera(2.0, vec3(5.0, 0.0,-20.0), vec3(0.0, 1.0, 0.0));
-	Esfera *esfera3 = new Esfera(2.0, vec3(-5.0, 0.0, -20.0), vec3(0.0, 0.0, 1.0));
-	Esfera *esfera4 = new Esfera(2.0, vec3(0.0, 0.0, -15.0), vec3(1.0, 1.0, 0.0));
-	Esfera *esfera5 = new Esfera(2.0, vec3(0.0, 0.0, -5.0), vec3(0.0, 1.0, 1.0));
+	Esfera *esfera1 = new Esfera(3.0, vec3(0.0, 0.0, -20.0), vec3(1.0, 0.0, 0.0));//cromada
+	Esfera *esfera2 = new Esfera(3.0, vec3(10.0, 0.0,-20.0), vec3(0.0, 1.0, 0.0));//verde
+	Esfera *esfera3 = new Esfera(3.0, vec3(-10.0, 0.0, -20.0), vec3(0.0, 1.0, 1.0));//verde agua
+	Esfera *esfera4 = new Esfera(3.0, vec3(0.0, 10.0, -20.0), vec3(1.0, 1.0, 0.0));
+	Esfera *esfera5 = new Esfera(3.0, vec3(0.0, -10.0, -20.0), vec3(1.0, 0.0, 0.0));//vermelha
+	
+	
+	Plano 	*plano1 = new Plano(vec3(0.0, -13.0, 0.0), vec3(0.0, 1.0, 0.0), 13.0);//chao
+	Plano 	*plano2 = new Plano(vec3(0.0, 0.0, -25.0), vec3(0.0, 0.0, 1.0), 25.0);//fundo
+	Plano 	*plano3 = new Plano(vec3(0.0, 13.0, 0.0), vec3(0.0, -1.0, 0.0), 13.0);//ceu
+	Plano 	*plano4 = new Plano(vec3(-13.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), 13.0);//esq
+	Plano 	*plano5 = new Plano(vec3(13.0, 0.0, 0.0), vec3(-1.0, 0.0, 0.0), 13.0);//dir
+	
 
+	plano1->superficie.corRGB = vec3(1.0, 1.0, 1.0);//chao
+	plano2->superficie.corRGB = vec3(0.0, 0.15, 0.65);//fundo
+	plano3->superficie.corRGB = vec3(1.0, 0.0, 0.0);//ceu
+	plano4->superficie.corRGB = vec3(1.0, 1.0, 1.0);//esq
+	plano5->superficie.corRGB = vec3(1.0, 1.0, 1.0);//dir
+	
+	plano1->superficie.espelhamento = false;//
+	plano2->superficie.espelhamento = false;//fundo
+	plano3->superficie.espelhamento = true;//ceu
+	
+	
 	esfera1->superficie.espelhamento = true;
-
 	esfera2->superficie.espelhamento = false;
-
 	esfera3->superficie.espelhamento = false;
-
 	esfera4->superficie.espelhamento = false;
-
 	esfera5->superficie.espelhamento = false;
 
 	objetos.push_back(esfera1);
@@ -58,6 +73,12 @@ void criarObjetos() {
 	objetos.push_back(esfera3);
 	objetos.push_back(esfera4);
 	objetos.push_back(esfera5);
+	objetos.push_back(plano1);
+	objetos.push_back(plano2);
+	objetos.push_back(plano3);
+	objetos.push_back(plano4);
+	objetos.push_back(plano5);
+	
 	
 }
 
@@ -146,19 +167,31 @@ void desenharPixels(GLint vbo) {
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
+vec3 xyParaMundo(unsigned xTela, unsigned yTela, 
+	unsigned widthTela, unsigned heightTela, mat4 projMat, mat4 viewMat) {
+	float xMundo = (2 * xTela) / (widthTela - 1);
+	float yMundo = (-2* yTela) / (heightTela + 1);
+	mat4 inversaProj = inverse(projMat * viewMat);
+	
+	return inversaProj * vec4(xMundo, yMundo, 0.0f, 1.0f);
+}
+
 void display(GLFWwindow* window) {
 
 	//angleY += 0.02;
 
-	float Max = 30.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
-	float distanciaCamera = 1.0;
-	vec3 lightPos	= vec3(Max, Max, 0.0);
-	vec3 camPos	= vec3(0.0f,  0.0f, distanciaCamera);
-	vec3 lookAt		= vec3(scene_center.x, scene_center.y, scene_center.z);
+	float Max = 15.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
+	//float distanciaCamera = 30.0;
+	vec3 lightPos	= vec3(0.0f, 12.0f, 0.0f);
+	//vec3 origemRaio	= vec3(0.0f,  0.0f, distanciaCamera);
+	vec3 origemRaio = vec3(0.0f, 0.0f, 10);
+	//vec3 direcaoRaio = glm::vec3(0.0, 0.0, -1,0);
+	glm::vec3 direcaoRaio	= glm::vec3(0.0f, 0.0f, -1.0f);
+	
 	vec3 up			= vec3(0.0, 1.0, 0.0);
-	mat4 ViewMat	= glm::lookAt(camPos, lookAt, up);
-	//mat4 ProjMat 	= perspective( 70.0, 1.0, 0.01, 100.0);
-	//mat4 ModelMat 	= mat4(1.0);
+	mat4 viewMat	= glm::lookAt(origemRaio, direcaoRaio, up);
+	mat4 projMat 	= perspective( 70.0, 1.0, 0.01, 100.0);
+	mat4 modelMat 	= mat4(1.0);
 
 //Rotacao do modelo (movimentacao da cena)
 	// ModelMat = rotate( ModelMat, angleX, vec3(1.0, 0.0, 0.0));
@@ -166,33 +199,35 @@ void display(GLFWwindow* window) {
 	// ModelMat = rotate( ModelMat, angleZ, vec3(0.0, 0.0, 1.0));
 //Unifica as 3 matrizes em uma 
 	//mat4 MVP 			= ProjMat * ViewMat * ModelMat;
-	//mat4 normalMat		= transpose(inverse(ModelMat));
 
 //Inicia o tracado de raios de cada ponto da tela ate o objeto
 	
-	vec3 origemRaio, direcaoRaio;
+	//vec3 origemRaio, 
+	//vec3 direcaoRaio;
 	
 	float invWidth = 1 / float(winWidth), invHeight = 1 / float(winHeight);
     float fov = 70, aspectratio = winWidth / float(winHeight);
     float angulo = tan(M_PI * 0.5 * fov / 180.);
 
 	//cout << "Percorrendo viewport de " << winWidth * winHeight << " pixels" << endl;	
-	double inicio = glfwGetTime(); 
-	origemRaio = vec3(0.0f, 5.0f, 10.0f);
+	//double inicio = glfwGetTime(); 
+	//origemRaio = vec3(0.0f, 5.0f, 10.0f);
 
+	
 	vector<vec3> cores;
-	vec3 cor;
 	
 	//cout << "Objetos carregados: " << objetos.size() << endl;	
 	
 	for (unsigned int y = winHeight; y > 0 ; y--) {
 		for (unsigned int x = 0; x < winWidth; x++) {
 
+			vec3 posicaoMundo = vec4(x, y, 10, 1) * projMat * viewMat;
+
 			float xMundo = (2 * ((x + 0.5) * invWidth) - 1) * angulo * aspectratio;
 			float yMundo = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
 			
-			direcaoRaio = normalize(vec3(xMundo, yMundo, -1));
-			cor = tracarRaio(origemRaio, direcaoRaio, objetos, vboVertices, vboColors, vboNormals, lightPos, 0);
+			direcaoRaio = normalize(vec3(xMundo, yMundo, -1) -vec3(0));
+			vec3 cor = tracarRaio(origemRaio, direcaoRaio, objetos, lightPos, 0);
 			cores.push_back(cor);
 		}
 	}

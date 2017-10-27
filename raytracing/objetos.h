@@ -10,12 +10,16 @@
 #include <cstdio>
 #include <glm/vec3.hpp>
 
+#ifndef INFINITO
+#define INFINITO 1e8
+#endif
+
 using namespace std;
 using namespace glm;
 
 struct Superficie {
     vec3 corRGB; 
-    vec3 ambienteRGB = vec3(1.0, 1.0, 1.0);
+    vec3 ambienteRGB = vec3(0.5, 0.5, 0.5);
     vec3 especularRGB = vec3(1.0, 1.0, 1.0);
     vec3 difusaRGB = vec3(0.72, 0.72, 0.72);
     
@@ -23,8 +27,19 @@ struct Superficie {
     bool transparencia = false;
 };
 
+struct IntersecaoObjeto {
+    float tIntersecao;
+    unsigned int indiceObjeto;
+
+    bool operator < (const IntersecaoObjeto& stIntersecao) const
+    {
+        return (tIntersecao < stIntersecao.tIntersecao);
+    }
+};
+
 class ObjetoImplicito { 
  public: 
+
     Superficie superficie;  
     ObjetoImplicito(){
         superficie.corRGB = vec3(0,0,0);
@@ -35,7 +50,7 @@ class ObjetoImplicito {
     }
     virtual ~ObjetoImplicito(){};
     virtual bool intersecao(const vec3 origem, const vec3 direcao, float &t0, float &t1) = 0;
-    virtual bool intersecao(const vec3 origem, const vec3 direcao, float &t) = 0; 
+    //virtual bool intersecao(const vec3 origem, const vec3 direcao, float &t) = 0; 
     virtual vec3 calcularNormal(vec3 origem, vec3 direcao, float tIntersecao) = 0;
 }; 
 
@@ -65,27 +80,37 @@ public:
         return 0.0;
     }
     bool intersecao(const vec3 origem, const vec3 direcao, float &t0, float &t1) {
-        intersecao(origem, direcao, t0);
+        return false;
     }
     
-    bool intersecao(const vec3 origem, const vec3 direcao, float &t0) {
-        //float t = INFINITO;
-        //t= parei aqui
-    }
 };
 
 class Plano: public ObjetoImplicito {
 public:
-   Plano(const vec3 p0, vec3 normal) {
-        
+    
+    vec3 p0 = vec3(0,0,0);
+    vec3 normal = vec3(0,0,0);
+    float d = 0;
+    Plano(const vec3 p0, vec3 normal, float d) {
+        this->p0 = p0;
+        this->normal = normal;
+        this->d = d;
     }
     ~Plano() {} 
 
     bool intersecao(const vec3 origem, const vec3 direcao, float &t0, float &t1) {
+        float t = (-1)* (this->d + dot(normal, origem)) / (dot(normal, direcao));
+
+        if (t > 0) {
+            t0 = t;
+            t1 = t;
+            return true;
+        }
+
         return false; 
     }
     vec3 calcularNormal(vec3 origem, vec3 direcao, float tIntersecao) {
-        return vec3(0);
+        return normalize(this->normal);
     }
     
 };
@@ -101,9 +126,7 @@ public:
         this->superficie.corRGB = corRGB;
     }  
     ~Esfera() {}
-    bool intersecao(const vec3 origem, const vec3 direcao, float &t) {
-        return false;
-    }
+    
     bool intersecao(const vec3 origem, const vec3 direcao, float &t0, float &t1) {
         vec3 l = this->centro - origem;
         float tca = dot(l, direcao);

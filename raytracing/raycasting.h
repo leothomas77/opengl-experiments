@@ -28,7 +28,6 @@ Funcoes para implementacao da tecnica de renderizacao por raycasting
 int nanoToMili(double nanoseconds);
 	
 vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, 
-    vector<GLfloat> &vertices, vector<GLfloat> &cores, vector<GLfloat> &normais, 
     vec3 posicaoLuz, unsigned int nivel);
 void moveCamera();
 void moveObject();

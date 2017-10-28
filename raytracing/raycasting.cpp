@@ -29,7 +29,7 @@ using namespace std;
 using namespace glm;
 
 #define MAX_RECURSOES	5
-#define REFRACAO_VIDRO 1.10 //indice de refracao do vidro
+#define REFRACAO_VIDRO 1.0f / 1.55f //indice de refracao do vidro
 #define REFRACAO_AR 1.0 
 
 int nanoToMili(double nanoseconds) {
@@ -96,7 +96,9 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
         cor = vec3(0);
         vertice = origem + (direcao * t);
         normal = objeto->calcularNormal(origem, direcao, t);
-        if (dot(direcao, normal) > 0) {
+        if (objeto->superficie.tipoSuperficie == refrataria && dot(direcao, normal) > 0) {
+            //cout << "Normal maior zero = obliquo" << endl;
+            normal = -normal;
             tocou = true;
         }
         //cout << "Objeto tocado" << endl;
@@ -110,12 +112,14 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
         } else if (objeto->superficie.tipoSuperficie == refrataria && nivel < MAX_RECURSOES) { 
             //calculo da refracao
             if (tocou) {
+                //cout << "refrata vidro" << endl;
                 indiceRefracao = REFRACAO_VIDRO;
             } else {
+                //cout << "refrata ar" << endl;
                 indiceRefracao = REFRACAO_AR;
             } 
-            vec3 raioRefratado = normalize(refract(direcao, -normal, indiceRefracao));
-            cor = tracarRaio(vertice-normal, raioRefratado, objetos, posicaoLuz, nivel + 1);
+            vec3 raioRefratado = normalize(refract(vertice, normal, indiceRefracao));
+            cor = tracarRaio(vertice + raioRefratado * 0.1f, raioRefratado, objetos, posicaoLuz, nivel + 1);
         } else {
             cor = objeto->superficie.corRGB;
             ambiente = objeto->superficie.ambienteRGB;

@@ -56,11 +56,11 @@ void criarObjetos() {
 	plano2->superficie.corRGB = vec3(1.0, 1.0, 1.0);//fundo
 	plano3->superficie.corRGB = vec3(0.8, 0.5, 0.2);//ceu
 	plano4->superficie.corRGB = vec3(1.0, 0.0, 0.0);//esq
-	plano5->superficie.corRGB = vec3(0.0, 0.0, 1.0);//dir
+	plano5->superficie.corRGB = vec3(1.0, 1.0, 0.0);//dir
 	
 		
-	esfera1->superficie.tipoSuperficie = refrataria;
-	esfera5->superficie.tipoSuperficie = reflexiva;
+	esfera1->superficie.tipoSuperficie = reflexiva;
+	esfera5->superficie.tipoSuperficie = refrataria;
 
 	
 
@@ -70,11 +70,11 @@ void criarObjetos() {
 	objetos.push_back(plano4);
 	objetos.push_back(plano5);
 	
-	//objetos.push_back(esfera1);
-	//objetos.push_back(esfera2);
-	//objetos.push_back(esfera3);
-	//objetos.push_back(esfera4);
-	//objetos.push_back(esfera5);
+	objetos.push_back(esfera1);
+	objetos.push_back(esfera2);
+	objetos.push_back(esfera3);
+	objetos.push_back(esfera4);
+	objetos.push_back(esfera5);
 	objetos.push_back(esfera6);
 	
 }
@@ -175,11 +175,11 @@ vec3 xyParaMundo(unsigned xTela, unsigned yTela,
 
 void display(GLFWwindow* window) {
 
-	//angleY += 0.02;
+	angleY += 0.02;
 
 	float Max = 15.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 	//float distanciaCamera = 30.0;
-	vec3 lightPos	= vec3(6.0f, 10.0f, 5.0f);
+	vec3 lightPos	= vec3(0.0f, 10.0f, 0.0f);
 	//vec3 origemRaio	= vec3(0.0f,  0.0f, distanciaCamera);
 	vec3 origemRaio = vec3(0.0f, 0.0f, 10);
 	//vec3 direcaoRaio = glm::vec3(0.0, 0.0, -1,0);
@@ -192,7 +192,6 @@ void display(GLFWwindow* window) {
 
 //Rotacao do modelo (movimentacao da cena)
 	// ModelMat = rotate( ModelMat, angleX, vec3(1.0, 0.0, 0.0));
-	// ModelMat = rotate( ModelMat, angleY, vec3(0.0, 1.0, 0.0));
 	// ModelMat = rotate( ModelMat, angleZ, vec3(0.0, 0.0, 1.0));
 //Unifica as 3 matrizes em uma 
 	//mat4 MVP 			= ProjMat * ViewMat * ModelMat;
@@ -214,16 +213,24 @@ void display(GLFWwindow* window) {
 	vector<vec3> cores;
 	
 	//cout << "Objetos carregados: " << objetos.size() << endl;	
-	
+
+	//Esfera* esfera1 = (Esfera*)objetos.at(5);
+	//esfera1->centro =+ vec3(0.0, 0.02, 0.0);
+
 	for (unsigned int y = winHeight; y > 0 ; y--) {
 		for (unsigned int x = 0; x < winWidth; x++) {
 
-			vec3 posicaoMundo = vec4(x, y, 10, 1) * projMat * viewMat;
+
 
 			float xMundo = (2 * ((x + 0.5) * invWidth) - 1) * angulo * aspectratio;
 			float yMundo = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
+
+			vec4 posicaoMundo = vec4(xMundo, yMundo, 10.0, 1.0); //* modelMat;
+
+			//modelMat = rotate( modelMat, angleY, vec3(xMundo, yMundo, 0.0));
 			
-			direcaoRaio = normalize(vec3(xMundo, yMundo, -1) -vec3(0));
+			
+			direcaoRaio = normalize(vec3(posicaoMundo.x, posicaoMundo.y, -1) -vec3(0));
 			vec3 cor = tracarRaio(origemRaio, direcaoRaio, objetos, lightPos, 0);
 			cores.push_back(cor);
 		}

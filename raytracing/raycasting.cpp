@@ -29,6 +29,8 @@ using namespace std;
 using namespace glm;
 
 #define MAX_RECURSOES	5
+#define REFRACAO_VIDRO 1.10 //indice de refracao do vidro
+#define REFRACAO_AR 1.0 
 
 int nanoToMili(double nanoseconds) {
     return (int)(nanoseconds*0x431BDE82)>>18;
@@ -48,16 +50,17 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
     vec3 especular = vec3(1.0);
     vec3 difusa = vec3(1.0);
     vec3 ambiente = vec3(1.0);
-    vec3 atenuacao = vec3(1.0);
+    float atenuacao = 0.68f;
     ObjetoImplicito* objeto = NULL;
-    unsigned int recursoes = 0;
-    vector<IntersecaoObjeto> intersecoesObjetos;
+    bool tocou = false;
+    float indiceRefracao = REFRACAO_AR;
+    //vector<IntersecaoObjeto> intersecoesObjetos;
 
     vec3 cor; 
     vec3 normal = vec3(0); 
     vec3 vertice = vec3(0);
 
-    IntersecaoObjeto intersecaoObjeto;
+    //IntersecaoObjeto intersecaoObjeto;
 
     for(unsigned int i = 0; i < objetos.size(); i++) {
         float t1 = INFINITO;
@@ -87,49 +90,80 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
 
     intersecoesObjetos.clear();
     */
-
+    
     if (objeto != NULL) {
-        cor = objeto->superficie.corRGB;
+   
+        cor = vec3(0);
         vertice = origem + (direcao * t);
         normal = objeto->calcularNormal(origem, direcao, t);
+        if (dot(direcao, normal) > 0) {
+            tocou = true;
+        }
         //cout << "Objeto tocado" << endl;
         //cout << "Objeto espelhamento" << objeto->superficie.espelhamento << endl;
         //cout << "Recursoes" << objeto->superficie.espelhamento << endl;
-        if (objeto->superficie.espelhamento && nivel < MAX_RECURSOES) {
+        if (objeto->superficie.tipoSuperficie == reflexiva && nivel < MAX_RECURSOES) {
             //cout << "Objeto espelhado" << endl;
             vec3 raioRefletido = reflect(direcao, normal);
             raioRefletido = normalize(raioRefletido); 
             cor = tracarRaio(vertice, raioRefletido, objetos, posicaoLuz, nivel + 1);
-        //} else if (objeto->superficie.transparencia && nivel < MAX_RECURSOES) { 
+        } else if (objeto->superficie.tipoSuperficie == refrataria && nivel < MAX_RECURSOES) { 
             //calculo da refracao
-
-            //return cor;
+            if (tocou) {
+                indiceRefracao = REFRACAO_VIDRO;
+            } else {
+                indiceRefracao = REFRACAO_AR;
+            } 
+            vec3 raioRefratado = normalize(refract(direcao, -normal, indiceRefracao));
+            cor = tracarRaio(vertice-normal, raioRefratado, objetos, posicaoLuz, nivel + 1);
         } else {
             cor = objeto->superficie.corRGB;
             ambiente = objeto->superficie.ambienteRGB;
             difusa = objeto->superficie.difusaRGB;
             especular = objeto->superficie.especularRGB;
 
-            vec3 phong = calcularPhong(origem, direcao, posicaoLuz, normal, vertice, difusa, especular);
-
-            cor =  cor * phong;
+            //vec3 phong = calcularPhong(origem, direcao, posicaoLuz, normal, vertice, difusa, especular);
+            vec3 direcaoLuz = normalize(posicaoLuz - vertice);
+            cor =  cor * ( 
+                calcularDifusa(direcaoLuz, normal, difusa) +
+                calcularEspecular(direcao, posicaoLuz, vertice, normal, especular)
+            );
+         
         }
+    }
+    if (temSombra(vertice, posicaoLuz, objetos)) {
+        cor = cor * atenuacao;
     }
 
     return cor;
 }
 
-vec3 calcularPhong(vec3 origem, vec3 direcao, vec3 posicaoLuz, 
-  vec3 normal, vec3 vertice, vec3 difusa, vec3 especular) {
-    vec3 l = normalize(posicaoLuz - vertice);
-    float teta = std::max(dot(l, normal), 0.0f);
+vec3 calcularDifusa(vec3 direcaoLuz, vec3 normal, vec3 difusa) {
+    float teta = std::max(dot(direcaoLuz, normal), 0.0f);
+    return difusa * teta;    
+}
 
+vec3 calcularEspecular(vec3 direcao, vec3 direcaoLuz, vec3 vertice, vec3 normal, vec3 especularRGB) {
     vec3 v = normalize(direcao - vertice);
-    vec3 refletido = reflect(-l, normal);
-    vec3 r = normalize(refletido);
-    float omega = std::max(dot(v, r), 0.0f); 
+    vec3 r = normalize(reflect(-direcaoLuz, normal));
+    float omega = std::max(dot(v, r), 0.0f);
+    return especularRGB * (float)pow(omega, 30);
+}
 
-    return  difusa * teta + especular * (float)pow(omega, 40);
+bool temSombra(vec3 vertice, vec3 posicaoLuz, vector<ObjetoImplicito*> objetos) {
+    float t1 = INFINITO, t0 = INFINITO;
+    bool retorno = false;
+    vec3 direcaoLuz = normalize(posicaoLuz - vertice);
+    for(unsigned i=0; i < objetos.size(); i++) {
+
+        if (objetos.at(i)->intersecao(vertice, direcaoLuz, t1, t0)) {
+           // cout << "tem sombra" << endl;
+            retorno = true;
+            break;
+        }
+    }
+
+    return retorno;
 }
 
 void salvarImagem(GLFWwindow* window,  vector<vec3> imagem, unsigned width, unsigned height) {

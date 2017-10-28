@@ -37,12 +37,13 @@ using namespace glm;
 void criarObjetos() {
 	cout << "Criando objetos " << endl;	
     
-	Esfera *esfera1 = new Esfera(3.0, vec3(0.0, 0.0, -20.0), vec3(1.0, 0.0, 0.0));//cromada
-	Esfera *esfera2 = new Esfera(3.0, vec3(10.0, 0.0,-20.0), vec3(0.0, 1.0, 0.0));//verde
-	Esfera *esfera3 = new Esfera(3.0, vec3(-10.0, 0.0, -20.0), vec3(0.0, 1.0, 1.0));//verde agua
-	Esfera *esfera4 = new Esfera(3.0, vec3(0.0, 10.0, -20.0), vec3(1.0, 1.0, 0.0));
-	Esfera *esfera5 = new Esfera(3.0, vec3(0.0, -10.0, -20.0), vec3(1.0, 0.0, 0.0));//vermelha
+	Esfera *esfera1 = new Esfera(3.0, vec3(0.0, 0.0, -20.0), vec3(0.1, 0.1, 0.1));//centro
+	Esfera *esfera2 = new Esfera(3.0, vec3(10.0, 0.0,-20.0), vec3(0.0, 1.0, 0.0));//leste
+	Esfera *esfera3 = new Esfera(3.0, vec3(-10.0, 0.0, -20.0), vec3(0.0, 1.0, 1.0));//oeste
+	Esfera *esfera4 = new Esfera(3.0, vec3(0.0, 10.0, -20.0), vec3(1.0, 1.0, 0.0));//norte
+	Esfera *esfera5 = new Esfera(3.0, vec3(-10.0, -10.0, -20.0), vec3(1.0, 0.0, 0.0));//sudoeste
 	
+	Esfera *esfera6 = new Esfera(3.0, vec3(0.0, -10.0, -20.0), vec3(1.0, 0.0, 0.0));//sul
 	
 	Plano 	*plano1 = new Plano(vec3(0.0, -13.0, 0.0), vec3(0.0, 1.0, 0.0), 13.0);//chao
 	Plano 	*plano2 = new Plano(vec3(0.0, 0.0, -25.0), vec3(0.0, 0.0, 1.0), 25.0);//fundo
@@ -52,33 +53,29 @@ void criarObjetos() {
 	
 
 	plano1->superficie.corRGB = vec3(1.0, 1.0, 1.0);//chao
-	plano2->superficie.corRGB = vec3(0.0, 0.15, 0.65);//fundo
-	plano3->superficie.corRGB = vec3(1.0, 0.0, 0.0);//ceu
-	plano4->superficie.corRGB = vec3(1.0, 1.0, 1.0);//esq
-	plano5->superficie.corRGB = vec3(1.0, 1.0, 1.0);//dir
+	plano2->superficie.corRGB = vec3(1.0, 1.0, 1.0);//fundo
+	plano3->superficie.corRGB = vec3(0.8, 0.5, 0.2);//ceu
+	plano4->superficie.corRGB = vec3(1.0, 0.0, 0.0);//esq
+	plano5->superficie.corRGB = vec3(0.0, 0.0, 1.0);//dir
 	
-	plano1->superficie.espelhamento = false;//
-	plano2->superficie.espelhamento = false;//fundo
-	plano3->superficie.espelhamento = true;//ceu
-	
-	
-	esfera1->superficie.espelhamento = true;
-	esfera2->superficie.espelhamento = false;
-	esfera3->superficie.espelhamento = false;
-	esfera4->superficie.espelhamento = false;
-	esfera5->superficie.espelhamento = false;
+		
+	esfera1->superficie.tipoSuperficie = refrataria;
+	esfera5->superficie.tipoSuperficie = reflexiva;
 
-	objetos.push_back(esfera1);
-	objetos.push_back(esfera2);
-	objetos.push_back(esfera3);
-	objetos.push_back(esfera4);
-	objetos.push_back(esfera5);
+	
+
 	objetos.push_back(plano1);
 	objetos.push_back(plano2);
 	objetos.push_back(plano3);
 	objetos.push_back(plano4);
 	objetos.push_back(plano5);
 	
+	//objetos.push_back(esfera1);
+	//objetos.push_back(esfera2);
+	//objetos.push_back(esfera3);
+	//objetos.push_back(esfera4);
+	//objetos.push_back(esfera5);
+	objetos.push_back(esfera6);
 	
 }
 
@@ -182,7 +179,7 @@ void display(GLFWwindow* window) {
 
 	float Max = 15.0; //max(scene_max.x, max(scene_max.y, scene_max.z));
 	//float distanciaCamera = 30.0;
-	vec3 lightPos	= vec3(0.0f, 12.0f, 0.0f);
+	vec3 lightPos	= vec3(6.0f, 10.0f, 5.0f);
 	//vec3 origemRaio	= vec3(0.0f,  0.0f, distanciaCamera);
 	vec3 origemRaio = vec3(0.0f, 0.0f, 10);
 	//vec3 direcaoRaio = glm::vec3(0.0, 0.0, -1,0);

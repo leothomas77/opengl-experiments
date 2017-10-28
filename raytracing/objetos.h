@@ -17,14 +17,19 @@
 using namespace std;
 using namespace glm;
 
+enum TipoSuperficie {
+    reflexiva, refrataria, solida
+};
+
 struct Superficie {
     vec3 corRGB; 
-    vec3 ambienteRGB = vec3(0.5, 0.5, 0.5);
+    vec3 ambienteRGB = vec3(0.18, 0.18, 0.18);
     vec3 especularRGB = vec3(1.0, 1.0, 1.0);
     vec3 difusaRGB = vec3(0.72, 0.72, 0.72);
     
-    bool espelhamento = false;
-    bool transparencia = false;
+    //bool espelhamento = false;
+    //bool transparencia = false;
+    TipoSuperficie tipoSuperficie = solida;
 };
 
 struct IntersecaoObjeto {
@@ -147,7 +152,7 @@ public:
     bool calcularRaizesEquacao(float a, float b, float c, float &t0, float &t1) { 
         float delta = b * b - 4 * a * c;
         bool retorno = false; 
-		cout << "delta: " << delta << endl;
+		//cout << "delta: " << delta << endl;
         
         if (delta == 0) { 
             t0 = t1 = -b / (2 * a);

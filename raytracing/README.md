@@ -12,16 +12,19 @@
 - [x] desenhar cena na janela GLFW
 ### Marco II - esfera desenhada
 - [x] redefinir a cena I - ponto de vista, cores e dimensões, reposicionamentos
-- [] renderizar plano
+- [x] renderizar plano
 - [x] implementar phong - objeto solido
+- [-] renderizar poligon - (abortado)
 ### Marco III - especular + difusa implementada
-
+- [x] revisar phong - objeto solido
 - [x] implementar recursao
 - [x] implementar reflexao
 - [] redefinir a cena II - reposicionamentos para visualizar melhor o efeito 
 - [] implementar transmissao
+- [] implementar sombra
+- [] implementar segunda fonte de luz
 ### Marco IV - reflezão e transmissão implementados
-
+- [] interagir com programa
 - [] movimentar camera
 - [] movimentar objeto
 ### Marco V - movimento da câmera implementado

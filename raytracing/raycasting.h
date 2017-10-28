@@ -36,6 +36,11 @@ void shade(vec3 lightPos, vec3 camPos, mat4 MVP, mat4 normalMat, mat4 ModelMat);
 void salvarImagem(GLFWwindow* window,  vector<vec3> imagem, unsigned width, unsigned height);
 vec3 calcularPhong(vec3 origem, vec3 direcao, vec3 posicaoLuz, 
 	vec3 normal, vec3 vertice, vec3 difusa, vec3 especular);
-  
+vec3 calcularEspecular(vec3 direcao, vec3 posicaoLuz, vec3 vertice, vec3 normal, vec3 especularRGB);
+float clip(float x, float min, float max);
+vec3 calcularDifusa(vec3 direcaoLuz, vec3 normal, vec3 difusa);
+bool temSombra(vec3 vertice, vec3 posicaoLuz, vector<ObjetoImplicito*> objetos);
+	
+	
 
 #endif //__RAYCASTING__	

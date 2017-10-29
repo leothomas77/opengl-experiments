@@ -30,7 +30,8 @@ using namespace glm;
 
 #define MAX_RECURSOES	5
 #define REFRACAO_VIDRO 1.0f / 1.55f //indice de refracao do vidro
-#define REFRACAO_AR 1.0 
+#define REFRACAO_AR 1.0f
+#define DESVIO 0.01f
 
 int nanoToMili(double nanoseconds) {
     return (int)(nanoseconds*0x431BDE82)>>18;
@@ -45,7 +46,8 @@ void shade(vec3 origemRaio, vec3 direcaoRaio, float t) {
 }
 
 
-vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec3 posicaoLuz, unsigned int nivel) {
+vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, 
+    vector<vec3> posicoesLuzes, unsigned int nivel) {
     float t = INFINITO;
     vec3 especular = vec3(1.0);
     vec3 difusa = vec3(1.0);
@@ -108,7 +110,7 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
             //cout << "Objeto espelhado" << endl;
             vec3 raioRefletido = reflect(direcao, normal);
             raioRefletido = normalize(raioRefletido); 
-            cor = tracarRaio(vertice, raioRefletido, objetos, posicaoLuz, nivel + 1);
+            cor = tracarRaio(vertice + normal * DESVIO, raioRefletido, objetos, posicoesLuzes, nivel + 1);
         } else if (objeto->superficie.tipoSuperficie == refrataria && nivel < MAX_RECURSOES) { 
             //calculo da refracao
             if (tocou) {
@@ -119,25 +121,35 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
                 indiceRefracao = REFRACAO_AR;
             } 
             vec3 raioRefratado = normalize(refract(vertice, normal, indiceRefracao));
-            cor = tracarRaio(vertice + raioRefratado * 0.1f, raioRefratado, objetos, posicaoLuz, nivel + 1);
+            cor = tracarRaio(vertice - normal * DESVIO, raioRefratado, objetos, posicoesLuzes, nivel + 1);
         } else {
             cor = objeto->superficie.corRGB;
             ambiente = objeto->superficie.ambienteRGB;
             difusa = objeto->superficie.difusaRGB;
             especular = objeto->superficie.especularRGB;
-
-            //vec3 phong = calcularPhong(origem, direcao, posicaoLuz, normal, vertice, difusa, especular);
-            vec3 direcaoLuz = normalize(posicaoLuz - vertice);
-            cor =  cor * ( 
-                calcularDifusa(direcaoLuz, normal, difusa) +
-                calcularEspecular(direcao, posicaoLuz, vertice, normal, especular)
-            );
+            
+            float r = 0.0f, g = 0.0f, b = 0.0f;
+            for (unsigned i=0; i < posicoesLuzes.size(); i++) {
+                vec3 direcaoLuz = normalize(posicoesLuzes.at(i) - vertice);
+                vec3 difusaEspecular = calcularDifusa(direcaoLuz, normal, difusa) +
+                calcularEspecular(direcao, posicoesLuzes.at(i), vertice, normal, especular);
+                r += difusaEspecular.r;
+                g += difusaEspecular.g;
+                b += difusaEspecular.b;
+            }
+            vec3 mediasComponentes = vec3(r / posicoesLuzes.size(), g / posicoesLuzes.size(), b / posicoesLuzes.size());
+             
+            cor = cor * mediasComponentes;
          
         }
+        for (unsigned i=0; i < posicoesLuzes.size(); i++) {
+            
+            if (temSombra(vertice , posicoesLuzes.at(i), objetos, objeto)) {
+                cor = cor * atenuacao;
+            }  
+        }      
     }
-    if (temSombra(vertice, posicaoLuz, objetos)) {
-        cor = cor * atenuacao;
-    }
+   
 
     return cor;
 }
@@ -154,16 +166,17 @@ vec3 calcularEspecular(vec3 direcao, vec3 direcaoLuz, vec3 vertice, vec3 normal,
     return especularRGB * (float)pow(omega, 30);
 }
 
-bool temSombra(vec3 vertice, vec3 posicaoLuz, vector<ObjetoImplicito*> objetos) {
+bool temSombra(vec3 vertice, vec3 posicaoLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado) {
     float t1 = INFINITO, t0 = INFINITO;
     bool retorno = false;
     vec3 direcaoLuz = normalize(posicaoLuz - vertice);
     for(unsigned i=0; i < objetos.size(); i++) {
-
-        if (objetos.at(i)->intersecao(vertice, direcaoLuz, t1, t0)) {
+        //verifica se outros objetos sao tocados pela luz
+        if (objetos.at(i)->intersecao(vertice, direcaoLuz, t1, t0) 
+            && objetos.at(i) != objetoTocado) {
            // cout << "tem sombra" << endl;
             retorno = true;
-            break;
+            //break;
         }
     }
 

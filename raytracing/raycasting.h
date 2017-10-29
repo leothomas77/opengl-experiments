@@ -28,7 +28,7 @@ Funcoes para implementacao da tecnica de renderizacao por raycasting
 int nanoToMili(double nanoseconds);
 	
 vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, 
-    vec3 posicaoLuz, unsigned int nivel);
+    vector<vec3> posicoesLuzes, unsigned int nivel);
 void moveCamera();
 void moveObject();
 void shade(vec3 origemRaio, vec3 direcaoRaio, float t);
@@ -39,7 +39,7 @@ vec3 calcularPhong(vec3 origem, vec3 direcao, vec3 posicaoLuz,
 vec3 calcularEspecular(vec3 direcao, vec3 posicaoLuz, vec3 vertice, vec3 normal, vec3 especularRGB);
 float clip(float x, float min, float max);
 vec3 calcularDifusa(vec3 direcaoLuz, vec3 normal, vec3 difusa);
-bool temSombra(vec3 vertice, vec3 posicaoLuz, vector<ObjetoImplicito*> objetos);
+bool temSombra(vec3 vertice, vec3 posicaoLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado);
 	
 	
 

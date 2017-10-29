@@ -38,37 +38,30 @@
 using namespace std;
 using namespace glm;
 
-GLuint 	shaderAmbient,
-		shaderGouraud,
-		shaderPhong,
-		shader;
 GLuint 	axisVBO[3];
 
 GLuint 	vbo;
-GLuint 	meshSize;
 
 //Movimento da camera
 vec3 deslocamento(0);
-#define PASSO_CAMERA 3.0f
-float 	velocidade = 3.0f;
-bool 	moveu = false;
+#define PASSO_CAMERA 0.02f
 
+float 	velocidade = 2.0f;
+unsigned moveu = RT_STOP;
+//Movimento do objeto
+unsigned indiceObjeto = 0;
 
 double  last;
 
 vector<ObjetoImplicito*> objetos;
+vector<vec3> posicoesLuzes;
 
 unsigned int winWidth 	= RT_WIDTH, winHeight 	= RT_HEIGHT;
 
 float 	angleX 	= 	0.0f,
 		angleY	= 	0.0f,
-		angleZ	=	0.0f,
 		distanciaCamera = 5.0f;
 
-/* the global Assimp scene object */
-const aiScene* scene = NULL;
-GLuint scene_list = 0;
-aiVector3D scene_min, scene_max, scene_center;
 
 
 #endif //__RTGLOBALS__	

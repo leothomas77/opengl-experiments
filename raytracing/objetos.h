@@ -21,6 +21,16 @@ enum TipoSuperficie {
     reflexiva, refrataria, solida
 };
 
+#define RT_LEFT     0
+#define RT_RIGHT    1 
+#define RT_UP       2 
+#define RT_DOWN     3
+#define RT_STOP     4
+#define PASSO_OBJETO 0.02f
+#define VELOCIDADE 1.2f
+#define ACELERACAO -2.0f
+
+
 struct Superficie {
     vec3 corRGB; 
     vec3 ambienteRGB = vec3(0.18, 0.18, 0.18);
@@ -55,8 +65,9 @@ class ObjetoImplicito {
     }
     virtual ~ObjetoImplicito(){};
     virtual bool intersecao(const vec3 origem, const vec3 direcao, float &t0, float &t1) = 0;
-    //virtual bool intersecao(const vec3 origem, const vec3 direcao, float &t) = 0; 
     virtual vec3 calcularNormal(vec3 origem, vec3 direcao, float tIntersecao) = 0;
+    virtual void mover(unsigned direcao, double ellapsed) = 0;
+    
 }; 
 
 class Triangulo: public ObjetoImplicito {
@@ -87,7 +98,10 @@ public:
     bool intersecao(const vec3 origem, const vec3 direcao, float &t0, float &t1) {
         return false;
     }
-    
+    void mover(unsigned direcao, double ellapsed) {
+        return;
+    };
+      
 };
 
 class Plano: public ObjetoImplicito {
@@ -104,19 +118,37 @@ public:
     ~Plano() {} 
 
     bool intersecao(const vec3 origem, const vec3 direcao, float &t0, float &t1) {
-        float t = (-1)* (this->d + dot(normal, origem)) / (dot(normal, direcao));
-
-        if (t > 0) {
-            t0 = t;
-            t1 = t;
-            return true;
+    /*    float denom = dot(this->normal, direcao);
+        if (abs(denom) > 0.0001f) {
+            float t = (-1)* (this->d + dot(normal, origem)) / denom;
+            if (t > 0.0001) {
+                t0 = t;
+                t1 = t;
+                return true;
+            }
+                
         }
-
+        return false;
+    */
+        float denom = dot(this->normal, direcao);
+        if (abs(denom) > 0.0001f) {
+            float t = dot(this->p0 - origem, this->normal) / denom;
+            if (t >= 0.0001f) {
+                t0 = t;
+                t1 = t;
+                return true; 
+            }
+        }
         return false; 
+        
     }
+
     vec3 calcularNormal(vec3 origem, vec3 direcao, float tIntersecao) {
         return normalize(this->normal);
     }
+    void mover(unsigned direcao, double ellapsed) {
+        return;
+    };
     
 };
 
@@ -172,6 +204,26 @@ public:
         vec3 ponto = origem + (direcao * tIntersecao);
         vec3 normalPonto = normalize(ponto - this->centro);
         return normalPonto;
+    }
+    void mover(unsigned direcao, double ellapsed) {
+        switch (direcao) {
+            case RT_LEFT:
+                this->centro.x =  this->centro.x - deslocamento(ellapsed);
+                break;
+            case RT_RIGHT:
+                this->centro.x =  this->centro.x + deslocamento(ellapsed);
+                break;
+            case RT_UP:
+                this->centro.z =  this->centro.z - deslocamento(ellapsed);
+                break;
+            case RT_DOWN:
+                this->centro.z =  this->centro.z + deslocamento(ellapsed);
+                break;
+        }
+        return;
+    };
+    float deslocamento(double tempo) {
+        return -ACELERACAO * pow(tempo, 2) + VELOCIDADE * tempo;
     }
 
 };

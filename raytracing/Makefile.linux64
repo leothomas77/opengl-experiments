@@ -19,7 +19,7 @@ GLUT_LDFLAGS 	=	-lglut
 ASSIMP_LDFLAGS 	=	-lassimp
 SOIL_LDFLAGS	= 	-lSOIL
 
-OBJFILES 	=	initShaders.o raycasting.o
+OBJFILES 	=	raycasting.o
 
 # compile rules
 .c.o:	$*.h

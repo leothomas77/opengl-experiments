@@ -5,7 +5,6 @@
 ### Marco I - ambiente funcionando
 
 - [x] definir a cena
-
 - [x] implementacao do algoritmo sem recursão
 - [x] renderizar esferas (imagem salva em arquivo)
 - [-] implementar shader (abortado)
@@ -19,14 +18,17 @@
 - [x] revisar phong - objeto solido
 - [x] implementar recursao
 - [x] implementar reflexao
-- [] redefinir a cena II - reposicionamentos para visualizar melhor o efeito 
-- [] implementar transmissao
-- [] implementar sombra
-- [] implementar segunda fonte de luz
+- [x] redefinir a cena II - reposicionamentos para visualizar melhor o efeito 
+- [x] implementar transmissao
+- [] revisar transmissao
+- [x] implementar sombra - problema com multiplos planos
+- [x] implementar segunda fonte de luz - problema com multipos planos
 ### Marco IV - reflezão e transmissão implementados
-- [] interagir com programa
+- [x] interagir com programa
+- [] preparar matrizes
 - [] movimentar camera
-- [] movimentar objeto
+- [x] movimentar objeto
 ### Marco V - movimento da câmera implementado
+- [] revisao codigo
 - [] preparar apresentação e documentação para entrega
 ### Entrega final 01/11/2017 no moodle

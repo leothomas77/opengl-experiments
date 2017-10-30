@@ -19,6 +19,13 @@
 #include "raycasting.h"
 #include "objetos.h"
 
+#define DESLIGADA   false
+#define LIGADA      true
+
+#define LUZ_1       0
+#define LUZ_2       1
+#define LUZ_12      2
+
 
 using namespace std;
 using namespace glm;
@@ -28,7 +35,7 @@ Funcoes para implementacao da tecnica de renderizacao por raycasting
 int nanoToMili(double nanoseconds);
 	
 vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, 
-    vector<vec3> posicoesLuzes, unsigned int nivel);
+    vector<PontoDeLuz> pontosDeLuz, unsigned int nivel);
 void moveCamera();
 void moveObject();
 void shade(vec3 origemRaio, vec3 direcaoRaio, float t);
@@ -36,11 +43,12 @@ void shade(vec3 lightPos, vec3 camPos, mat4 MVP, mat4 normalMat, mat4 ModelMat);
 void salvarImagem(GLFWwindow* window,  vector<vec3> imagem, unsigned width, unsigned height);
 vec3 calcularPhong(vec3 origem, vec3 direcao, vec3 posicaoLuz, 
 	vec3 normal, vec3 vertice, vec3 difusa, vec3 especular);
-vec3 calcularEspecular(vec3 direcao, vec3 posicaoLuz, vec3 vertice, vec3 normal, vec3 especularRGB);
+vec3 calcularEspecular(vec3 direcao, vec3 direcaoLuz, vec3 vertice, vec3 normal, vec3 especularRGB, unsigned expoente);
 float clip(float x, float min, float max);
 vec3 calcularDifusa(vec3 direcaoLuz, vec3 normal, vec3 difusa);
-bool temSombra(vec3 vertice, vec3 posicaoLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado);
-	
+bool temSombra(vec3 vertice, vector<PontoDeLuz> pontosDeLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado);
+void mudarEstadoLuz(unsigned &estado, vector<PontoDeLuz> &pontosDeLuz);	
+vec3 calcularDirecaoLuz(vec3 vertice, vec3 posicaoLuz);
 	
 
 #endif //__RAYCASTING__	

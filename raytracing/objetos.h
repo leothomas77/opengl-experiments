@@ -31,14 +31,17 @@ enum TipoSuperficie {
 #define ACELERACAO -2.0f
 
 
+struct PontoDeLuz {
+    vec3 posicao;
+    bool estado;
+};
+
 struct Superficie {
     vec3 corRGB; 
     vec3 ambienteRGB = vec3(0.18, 0.18, 0.18);
     vec3 especularRGB = vec3(1.0, 1.0, 1.0);
     vec3 difusaRGB = vec3(0.72, 0.72, 0.72);
-    
-    //bool espelhamento = false;
-    //bool transparencia = false;
+    unsigned expoente = 38;
     TipoSuperficie tipoSuperficie = solida;
 };
 
@@ -54,7 +57,6 @@ struct IntersecaoObjeto {
 
 class ObjetoImplicito { 
  public: 
-
     Superficie superficie;  
     ObjetoImplicito(){
         superficie.corRGB = vec3(0,0,0);
@@ -118,7 +120,7 @@ public:
     ~Plano() {} 
 
     bool intersecao(const vec3 origem, const vec3 direcao, float &t0, float &t1) {
-    /*    float denom = dot(this->normal, direcao);
+        float denom = dot(this->normal, direcao);
         if (abs(denom) > 0.0001f) {
             float t = (-1)* (this->d + dot(normal, origem)) / denom;
             if (t > 0.0001) {
@@ -129,10 +131,10 @@ public:
                 
         }
         return false;
-    */
-        float denom = dot(this->normal, direcao);
-        if (abs(denom) > 0.0001f) {
-            float t = dot(this->p0 - origem, this->normal) / denom;
+    
+     /*   float denominador= dot(this->normal, direcao);
+        if (abs(denominador) > 0.0001f) {
+            float t = dot(this->p0 - origem, this->normal) / denominador;
             if (t >= 0.0001f) {
                 t0 = t;
                 t1 = t;
@@ -140,7 +142,7 @@ public:
             }
         }
         return false; 
-        
+     */   
     }
 
     vec3 calcularNormal(vec3 origem, vec3 direcao, float tIntersecao) {

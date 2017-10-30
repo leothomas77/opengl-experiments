@@ -35,14 +35,19 @@ using namespace glm;
 
 /// ***********************************************************************
 void criarObjetos() {
-	cout << "Criando objetos da cena" << endl;	
+	cout << "Criando objetos da cena" << endl;
+	
+	PontoDeLuz luz1;
+	luz1.posicao = vec3(8.0f, 13.0f, 10.0f);
+	luz1.estado = LIGADA;
 
-	vec3 posicaoLuz1 = vec3(8.0f, 13.0f, 10.0f); 
-	vec3 posicaoLuz2 = vec3(-8.0f, 13.0f, 10.0f);
+	PontoDeLuz luz2;
+	luz2.posicao = vec3(-8.0f, 13.0f, 10.0f);
+	luz2.estado = LIGADA;	
+	
+	pontosDeLuz.push_back(luz1);
+	pontosDeLuz.push_back(luz2);
 
-	posicoesLuzes.push_back(posicaoLuz1);
-	posicoesLuzes.push_back(posicaoLuz2);
-    
 	Esfera *esfera1 = new Esfera(3.0, vec3(0.0, 0.0, -20.0), vec3(0.1, 0.1, 0.1));//centro
 	Esfera *esfera2 = new Esfera(3.0, vec3(10.0, 0.0,-20.0), vec3(0.0, 1.0, 0.0));//leste
 	Esfera *esfera3 = new Esfera(3.0, vec3(-10.0, 0.0, -20.0), vec3(0.0, 1.0, 1.0));//oeste
@@ -79,7 +84,7 @@ void criarObjetos() {
 
 	objetos.push_back(plano1);
 //	objetos.push_back(plano2);
-//	objetos.push_back(plano3);
+	objetos.push_back(plano3);
 //	objetos.push_back(plano4);
 //	objetos.push_back(plano5);
 
@@ -111,7 +116,7 @@ vec3 xyParaMundo(unsigned xTela, unsigned yTela,
 void display(GLFWwindow* window) {
 
 
-	vec3 origemRaio = vec3(0.0f, 0.0f, 10);
+	vec3 origemRaio = vec3(0.0f, 0.0f, 1.0f);
 	glm::vec3 direcaoRaio	= glm::vec3(0.0f, 0.0f, -1.0f);
 	
 	vec3 up			= vec3(0.0, 1.0, 0.0);
@@ -128,7 +133,7 @@ void display(GLFWwindow* window) {
 //Inicia o tracado de raios de cada ponto da tela ate o objeto
 	
 	float invWidth = 1 / float(winWidth), invHeight = 1 / float(winHeight);
-    float fov = 70, aspectratio = winWidth / float(winHeight);
+    float fov = 90, aspectratio = winWidth / float(winHeight);
     float angulo = tan(M_PI * 0.5 * fov / 180.);
 
 	vector<vec3> cores;
@@ -140,13 +145,13 @@ void display(GLFWwindow* window) {
 			float xMundo = (2 * ((x + 0.5) * invWidth) - 1) * angulo * aspectratio;
 			float yMundo = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
 
-			vec4 posicaoMundo = vec4(xMundo, yMundo, 10.0, 1.0); //* modelMat;
+			vec4 posicaoMundo = vec4(xMundo, yMundo, 1.0, 1.0); //* modelMat;
 
 			//modelMat = rotate( modelMat, angleY, vec3(xMundo, yMundo, 0.0));
 			
 			
 			direcaoRaio = normalize(vec3(posicaoMundo.x, posicaoMundo.y, -1) -vec3(0));
-			vec3 cor = tracarRaio(origemRaio, direcaoRaio, objetos, posicoesLuzes, 0);
+			vec3 cor = tracarRaio(origemRaio, direcaoRaio, objetos, pontosDeLuz, 0);
 			cores.push_back(cor);
 		}
 	}
@@ -239,6 +244,9 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 										break;
 			case GLFW_KEY_DOWN		: 	moveu = RT_DOWN;
 										break;
+			case 'l'				: 	
+			case 'L'				: 	mudarEstadoLuz(estadoLuz, pontosDeLuz);
+			break;
 			case '0'				: 	indiceObjeto = 0;
 			break;
 			case '1'				: 	indiceObjeto = 1;

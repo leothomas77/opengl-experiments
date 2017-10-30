@@ -54,8 +54,8 @@ unsigned indiceObjeto = 0;
 double  last;
 
 vector<ObjetoImplicito*> objetos;
-vector<vec3> posicoesLuzes;
-
+vector<PontoDeLuz> pontosDeLuz;
+unsigned estadoLuz = 0; //LUZ_1
 unsigned int winWidth 	= RT_WIDTH, winHeight 	= RT_HEIGHT;
 
 float 	angleX 	= 	0.0f,

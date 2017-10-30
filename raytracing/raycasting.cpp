@@ -32,6 +32,7 @@ using namespace glm;
 #define REFRACAO_VIDRO 1.0f / 1.55f //indice de refracao do vidro
 #define REFRACAO_AR 1.0f
 #define DESVIO 0.01f
+#define ATENUACAO 0.30f
 
 int nanoToMili(double nanoseconds) {
     return (int)(nanoseconds*0x431BDE82)>>18;
@@ -47,22 +48,15 @@ void shade(vec3 origemRaio, vec3 direcaoRaio, float t) {
 
 
 vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, 
-    vector<vec3> posicoesLuzes, unsigned int nivel) {
+    vector<PontoDeLuz> pontosDeLuz, unsigned int nivel) {
     float t = INFINITO;
-    vec3 especular = vec3(1.0);
-    vec3 difusa = vec3(1.0);
-    vec3 ambiente = vec3(1.0);
-    float atenuacao = 0.68f;
     ObjetoImplicito* objeto = NULL;
     bool tocou = false;
     float indiceRefracao = REFRACAO_AR;
-    //vector<IntersecaoObjeto> intersecoesObjetos;
 
-    vec3 cor; 
+    vec3 cor = BACKGROUND; 
     vec3 normal = vec3(0); 
     vec3 vertice = vec3(0);
-
-    //IntersecaoObjeto intersecaoObjeto;
 
     for(unsigned int i = 0; i < objetos.size(); i++) {
         float t1 = INFINITO;
@@ -83,19 +77,9 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
         } 
     }
 
-    //Ordena intersecoes e retorna o objeto com menor t
-    /*
-    for (unsigned i=0; i)
-    std::sort(intersecoesObjetos.begin(), intersecoesObjetos.end());
-    t = intersecoesObjetos.at(0).tIntersecao;
-    objeto = objetos.at(intersecoesObjetos.at(0).indiceObjeto);
-
-    intersecoesObjetos.clear();
-    */
-    
     if (objeto != NULL) {
-   
-        cor = vec3(0);
+        nivel++;//nivel de recursao
+        vec3 ambiente = objeto->superficie.ambienteRGB;
         vertice = origem + (direcao * t);
         normal = objeto->calcularNormal(origem, direcao, t);
         if (objeto->superficie.tipoSuperficie == refrataria && dot(direcao, normal) > 0) {
@@ -110,7 +94,7 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
             //cout << "Objeto espelhado" << endl;
             vec3 raioRefletido = reflect(direcao, normal);
             raioRefletido = normalize(raioRefletido); 
-            cor = tracarRaio(vertice + normal * DESVIO, raioRefletido, objetos, posicoesLuzes, nivel + 1);
+            cor = tracarRaio(vertice , raioRefletido, objetos, pontosDeLuz, nivel);
         } else if (objeto->superficie.tipoSuperficie == refrataria && nivel < MAX_RECURSOES) { 
             //calculo da refracao
             if (tocou) {
@@ -121,35 +105,35 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
                 indiceRefracao = REFRACAO_AR;
             } 
             vec3 raioRefratado = normalize(refract(vertice, normal, indiceRefracao));
-            cor = tracarRaio(vertice - normal * DESVIO, raioRefratado, objetos, posicoesLuzes, nivel + 1);
+            cor = tracarRaio(vertice - normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
         } else {
             cor = objeto->superficie.corRGB;
-            ambiente = objeto->superficie.ambienteRGB;
-            difusa = objeto->superficie.difusaRGB;
-            especular = objeto->superficie.especularRGB;
-            
+            vec3 especular = objeto->superficie.especularRGB;
+            vec3 difusa = objeto->superficie.difusaRGB;
+            float atenuacao = 0.68f;
+            unsigned expoente = objeto->superficie.expoente;
             float r = 0.0f, g = 0.0f, b = 0.0f;
-            for (unsigned i=0; i < posicoesLuzes.size(); i++) {
-                vec3 direcaoLuz = normalize(posicoesLuzes.at(i) - vertice);
-                vec3 difusaEspecular = calcularDifusa(direcaoLuz, normal, difusa) +
-                calcularEspecular(direcao, posicoesLuzes.at(i), vertice, normal, especular);
+            //calcula a contribuicao de cada luz na cor
+            for (unsigned i=0; i < pontosDeLuz.size() && pontosDeLuz.at(i).estado == LIGADA; i++) {
+
+                vec3 direcaoLuz = normalize(pontosDeLuz.at(i).posicao - vertice);
+                vec3 difusaEspecular = 
+                    calcularDifusa(direcaoLuz, normal, difusa) +
+                    calcularEspecular(direcao, pontosDeLuz.at(i).posicao, vertice, normal, especular, expoente);
                 r += difusaEspecular.r;
                 g += difusaEspecular.g;
                 b += difusaEspecular.b;
             }
-            vec3 mediasComponentes = vec3(r / posicoesLuzes.size(), g / posicoesLuzes.size(), b / posicoesLuzes.size());
+            vec3 mediasComponentes = vec3(r / pontosDeLuz.size(), g / pontosDeLuz.size(), b / pontosDeLuz.size());
              
             cor = cor * mediasComponentes;
          
         }
-        for (unsigned i=0; i < posicoesLuzes.size(); i++) {
-            
-            if (temSombra(vertice , posicoesLuzes.at(i), objetos, objeto)) {
-                cor = cor * atenuacao;
-            }  
-        }      
+
+        if (temSombra(vertice, pontosDeLuz , objetos, objeto)) {
+           cor = cor * ATENUACAO;
+        }
     }
-   
 
     return cor;
 }
@@ -159,28 +143,60 @@ vec3 calcularDifusa(vec3 direcaoLuz, vec3 normal, vec3 difusa) {
     return difusa * teta;    
 }
 
-vec3 calcularEspecular(vec3 direcao, vec3 direcaoLuz, vec3 vertice, vec3 normal, vec3 especularRGB) {
+vec3 calcularEspecular(vec3 direcao, vec3 direcaoLuz, vec3 vertice, vec3 normal, vec3 especularRGB, unsigned expoente) {
     vec3 v = normalize(direcao - vertice);
     vec3 r = normalize(reflect(-direcaoLuz, normal));
     float omega = std::max(dot(v, r), 0.0f);
-    return especularRGB * (float)pow(omega, 30);
+    return especularRGB * (float)pow(omega, expoente);
 }
 
-bool temSombra(vec3 vertice, vec3 posicaoLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado) {
+vec3 calcularDirecaoLuz(vec3 vertice, vec3 posicaoLuz) {
+    return normalize(posicaoLuz - vertice);
+}
+
+/*
+Verifica na cena se do ponto tocado ao ponto de luz existe intersecao com algum outro objeto da cena
+*/
+bool temSombra(vec3 vertice, vector<PontoDeLuz> pontosDeLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado) {
     float t1 = INFINITO, t0 = INFINITO;
     bool retorno = false;
-    vec3 direcaoLuz = normalize(posicaoLuz - vertice);
-    for(unsigned i=0; i < objetos.size(); i++) {
-        //verifica se outros objetos sao tocados pela luz
-        if (objetos.at(i)->intersecao(vertice, direcaoLuz, t1, t0) 
-            && objetos.at(i) != objetoTocado) {
-           // cout << "tem sombra" << endl;
-            retorno = true;
-            //break;
-        }
+    for (unsigned k=0; k < pontosDeLuz.size() && pontosDeLuz.at(k).estado == LIGADA; k++) {
+        for(unsigned i=0; i < objetos.size() && objetos.at(i) != objetoTocado; i++) {
+            vec3 direcaoLuz = calcularDirecaoLuz(vertice, pontosDeLuz.at(k).posicao);
+            if (objetos.at(i)->intersecao(vertice, direcaoLuz, t1, t0)) {
+                retorno = true;
+                break;
+            }
+        }    
     }
-
     return retorno;
+}
+
+void mudarEstadoLuz(unsigned &estado, vector<PontoDeLuz> &pontosDeLuz) {
+    unsigned novoEstado;
+    if (pontosDeLuz.size() <= 2) {
+        switch (estado) {
+            case LUZ_1: novoEstado = LUZ_2;
+                        //cout << "Novo estado: " << novoEstado << endl;
+                        pontosDeLuz.at(0).estado = DESLIGADA;
+                        pontosDeLuz.at(1).estado = LIGADA;
+                        break;
+            case LUZ_2: novoEstado = LUZ_12;
+                        //cout << "Novo estado: " << novoEstado << endl;
+                        pontosDeLuz.at(0).estado = LIGADA;
+                        pontosDeLuz.at(1).estado = LIGADA;
+                        break;
+            case LUZ_12: novoEstado = LUZ_1;
+                        //cout << "Novo estado: " << novoEstado << endl;
+                        pontosDeLuz.at(0).estado = LIGADA;
+                        pontosDeLuz.at(1).estado = DESLIGADA;
+                        break;
+        }
+        estado = novoEstado;
+    } else {
+        cout << "Sem pontos de luz para definir estado" << endl;
+    }
+    return;
 }
 
 void salvarImagem(GLFWwindow* window,  vector<vec3> imagem, unsigned width, unsigned height) {

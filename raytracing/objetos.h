@@ -1,12 +1,9 @@
 #ifndef __OBJETOS__	
 #define __OBJETOS__
 
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include <cfloat>
-#include <cstdlib>
 #include <cstdio>
 #include <glm/vec3.hpp>
 
@@ -57,6 +54,7 @@ struct IntersecaoObjeto {
 
 class ObjetoImplicito { 
  public: 
+    bool pintouSombra = false;
     Superficie superficie;  
     ObjetoImplicito(){
         superficie.corRGB = vec3(0,0,0);
@@ -225,7 +223,7 @@ public:
         return;
     };
     float deslocamento(double tempo) {
-        return -ACELERACAO * pow(tempo, 2) + VELOCIDADE * tempo;
+        return VELOCIDADE * tempo;
     }
 
 };

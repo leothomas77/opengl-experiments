@@ -49,6 +49,8 @@ vec3 calcularDifusa(vec3 direcaoLuz, vec3 normal, vec3 difusa);
 bool temSombra(vec3 vertice, vector<PontoDeLuz> pontosDeLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado);
 void mudarEstadoLuz(unsigned &estado, vector<PontoDeLuz> &pontosDeLuz);	
 vec3 calcularDirecaoLuz(vec3 vertice, vec3 posicaoLuz);
+unsigned obterEstadoLuz(vector<PontoDeLuz> pontosDeLuz);
+	
 	
 
 #endif //__RAYCASTING__	

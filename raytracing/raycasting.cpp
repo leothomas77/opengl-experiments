@@ -29,7 +29,7 @@ using namespace std;
 using namespace glm;
 
 #define MAX_RECURSOES	5
-#define REFRACAO_VIDRO 1.0f / 1.55f //indice de refracao do vidro
+#define REFRACAO_VIDRO 1/3.0f //indice de refracao do vidro
 #define REFRACAO_AR 1.0f
 #define DESVIO 0.01f
 #define ATENUACAO 0.30f
@@ -51,9 +51,6 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
     vector<PontoDeLuz> pontosDeLuz, unsigned int nivel) {
     float t = INFINITO;
     ObjetoImplicito* objeto = NULL;
-    bool tocou = false;
-    float indiceRefracao = REFRACAO_AR;
-
     vec3 cor = BACKGROUND; 
     vec3 normal = vec3(0); 
     vec3 vertice = vec3(0);
@@ -79,10 +76,12 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
 
     if (objeto != NULL) {
         nivel++;//nivel de recursao
+        bool tocou = false;
         vec3 ambiente = objeto->superficie.ambienteRGB;
         vertice = origem + (direcao * t);
         normal = objeto->calcularNormal(origem, direcao, t);
-        if (objeto->superficie.tipoSuperficie == refrataria && dot(direcao, normal) > 0) {
+
+        if (dot(direcao, normal) > 0) {
             //cout << "Normal maior zero = obliquo" << endl;
             normal = -normal;
             tocou = true;
@@ -96,6 +95,7 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
             raioRefletido = normalize(raioRefletido); 
             cor = tracarRaio(vertice , raioRefletido, objetos, pontosDeLuz, nivel);
         } else if (objeto->superficie.tipoSuperficie == refrataria && nivel < MAX_RECURSOES) { 
+            float indiceRefracao ;
             //calculo da refracao
             if (tocou) {
                 //cout << "refrata vidro" << endl;
@@ -114,24 +114,30 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
             unsigned expoente = objeto->superficie.expoente;
             float r = 0.0f, g = 0.0f, b = 0.0f;
             //calcula a contribuicao de cada luz na cor
-            for (unsigned i=0; i < pontosDeLuz.size() && pontosDeLuz.at(i).estado == LIGADA; i++) {
-
-                vec3 direcaoLuz = normalize(pontosDeLuz.at(i).posicao - vertice);
-                vec3 difusaEspecular = 
-                    calcularDifusa(direcaoLuz, normal, difusa) +
-                    calcularEspecular(direcao, pontosDeLuz.at(i).posicao, vertice, normal, especular, expoente);
-                r += difusaEspecular.r;
-                g += difusaEspecular.g;
-                b += difusaEspecular.b;
+            unsigned luzesLigadas = 0;
+            
+            for (unsigned k=0; k < pontosDeLuz.size(); k++) {
+                if (pontosDeLuz.at(k).estado == LIGADA) {
+                    luzesLigadas++;
+                    vec3 direcaoLuz = normalize(pontosDeLuz.at(k).posicao - vertice);
+                    vec3 difusaEspecular = 
+                        calcularDifusa(direcaoLuz, normal, difusa) +
+                        calcularEspecular(direcao, pontosDeLuz.at(k).posicao, vertice, normal, especular, expoente);
+                    r += difusaEspecular.r;
+                    g += difusaEspecular.g;
+                    b += difusaEspecular.b;
+     
+                }
             }
-            vec3 mediasComponentes = vec3(r / pontosDeLuz.size(), g / pontosDeLuz.size(), b / pontosDeLuz.size());
+            //cout << "luzes ligadas:" << luzesLigadas << endl;
+            luzesLigadas == 0 ? luzesLigadas = 1 : luzesLigadas = luzesLigadas; //evita divisao por zero
+            vec3 mediasComponentes = vec3(r / luzesLigadas, g / luzesLigadas, b / luzesLigadas);
              
             cor = cor * mediasComponentes;
          
         }
-
         if (temSombra(vertice, pontosDeLuz , objetos, objeto)) {
-           cor = cor * ATENUACAO;
+            cor = cor * ATENUACAO;
         }
     }
 
@@ -158,23 +164,39 @@ vec3 calcularDirecaoLuz(vec3 vertice, vec3 posicaoLuz) {
 Verifica na cena se do ponto tocado ao ponto de luz existe intersecao com algum outro objeto da cena
 */
 bool temSombra(vec3 vertice, vector<PontoDeLuz> pontosDeLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado) {
-    float t1 = INFINITO, t0 = INFINITO;
+    float t1 = INFINITO, t0 = INFINITO, t = INFINITO;
     bool retorno = false;
-    for (unsigned k=0; k < pontosDeLuz.size() && pontosDeLuz.at(k).estado == LIGADA; k++) {
-        for(unsigned i=0; i < objetos.size() && objetos.at(i) != objetoTocado; i++) {
-            vec3 direcaoLuz = calcularDirecaoLuz(vertice, pontosDeLuz.at(k).posicao);
-            if (objetos.at(i)->intersecao(vertice, direcaoLuz, t1, t0)) {
-                retorno = true;
-                break;
+    for (unsigned k=0; k < pontosDeLuz.size(); k++) {
+        if (pontosDeLuz.at(k).estado == LIGADA) {
+            for(unsigned i=0; i < objetos.size(); i++) {
+                if (objetos.at(i) != objetoTocado) {
+                    vec3 direcaoLuz = calcularDirecaoLuz(vertice, pontosDeLuz.at(k).posicao);
+                    if (objetos.at(i)->intersecao(vertice, direcaoLuz, t1, t0)) {
+                        return true;// saida do loop duplo
+                    } else {
+                        return false;
+                    }
+                } 
             }
-        }    
+        }
     }
     return retorno;
 }
 
+unsigned obterEstadoLuz(vector<PontoDeLuz> pontosDeLuz) {
+    if (pontosDeLuz.size() == 2) {
+        if (pontosDeLuz.at(0).estado == LIGADA    && pontosDeLuz.at(1).estado == DESLIGADA) return LUZ_1;
+        if (pontosDeLuz.at(0).estado == DESLIGADA    && pontosDeLuz.at(1).estado == LIGADA) return LUZ_2;
+        if (pontosDeLuz.at(0).estado == LIGADA && pontosDeLuz.at(1).estado == LIGADA) return LUZ_12;
+    } else {
+        cout << "Erro ao recuperar estado das luzes" << endl;
+    }
+    return LUZ_1;
+}
+
 void mudarEstadoLuz(unsigned &estado, vector<PontoDeLuz> &pontosDeLuz) {
     unsigned novoEstado;
-    if (pontosDeLuz.size() <= 2) {
+    if (pontosDeLuz.size() == 2) {
         switch (estado) {
             case LUZ_1: novoEstado = LUZ_2;
                         //cout << "Novo estado: " << novoEstado << endl;
@@ -196,6 +218,7 @@ void mudarEstadoLuz(unsigned &estado, vector<PontoDeLuz> &pontosDeLuz) {
     } else {
         cout << "Sem pontos de luz para definir estado" << endl;
     }
+    cout << "Luz1: " << pontosDeLuz.at(0).estado << " Luz2: " << pontosDeLuz.at(1).estado << endl;
     return;
 }
 

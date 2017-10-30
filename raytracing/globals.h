@@ -1,19 +1,13 @@
 #ifndef __RTGLOBALS__
 #define __RTGLOBALS__
 
-
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp> 
 #include <glm/mat4x4.hpp> 
 #include <glm/gtc/matrix_transform.hpp> 
 #include <glm/gtc/type_ptr.hpp> 
 
-#include <assimp/cimport.h>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
 #include "objetos.h"
-
 
 #ifndef BUFFER_OFFSET 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
@@ -55,7 +49,7 @@ double  last;
 
 vector<ObjetoImplicito*> objetos;
 vector<PontoDeLuz> pontosDeLuz;
-unsigned estadoLuz = 0; //LUZ_1
+unsigned estadoLuz = 2;//LUZ_12
 unsigned int winWidth 	= RT_WIDTH, winHeight 	= RT_HEIGHT;
 
 float 	angleX 	= 	0.0f,

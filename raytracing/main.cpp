@@ -1,14 +1,7 @@
 #include <iostream>
-#include <cfloat>
 #include <vector>
-#include <limits>
-#include <cstdlib>
 #include <cstdio>
-#include <cmath>
-
 #include <fstream>
-#include <vector>
-#include <cassert>
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp> 
@@ -16,16 +9,9 @@
 #include <glm/gtc/matrix_transform.hpp> 
 #include <glm/gtc/type_ptr.hpp> 
 
-/* assimp include files. These three are usually needed. */
-#include <assimp/cimport.h>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
 #include <GL/glew.h>
-
 #include <GLFW/glfw3.h>
 
-#include "initShaders.h"
 #include "objetos.h"
 #include "globals.h"
 #include "raycasting.h"
@@ -38,11 +24,11 @@ void criarObjetos() {
 	cout << "Criando objetos da cena" << endl;
 	
 	PontoDeLuz luz1;
-	luz1.posicao = vec3(8.0f, 13.0f, 10.0f);
-	luz1.estado = LIGADA;
+	luz1.posicao = vec3(8.0f, 8.0f, 10.0f);
+	luz1.estado = DESLIGADA;
 
 	PontoDeLuz luz2;
-	luz2.posicao = vec3(-8.0f, 13.0f, 10.0f);
+	luz2.posicao = vec3(-8.0f, 8.0f, 10.0f);
 	luz2.estado = LIGADA;	
 	
 	pontosDeLuz.push_back(luz1);
@@ -52,7 +38,7 @@ void criarObjetos() {
 	Esfera *esfera2 = new Esfera(3.0, vec3(10.0, 0.0,-20.0), vec3(0.0, 1.0, 0.0));//leste
 	Esfera *esfera3 = new Esfera(3.0, vec3(-10.0, 0.0, -20.0), vec3(0.0, 1.0, 1.0));//oeste
 	Esfera *esfera4 = new Esfera(3.0, vec3(0.0, 10.0, -20.0), vec3(1.0, 1.0, 0.0));//norte
-	Esfera *esfera5 = new Esfera(3.0, vec3(-10.0, -10.0, -20.0), vec3(0.0, 0.0, 0.0));//sudoeste
+	Esfera *esfera5 = new Esfera(3.0, vec3(-10.0, -10.0, -20.0), vec3(0.1, 0.1, 0.1));//sudoeste
 	
 	Esfera *esfera6 = new Esfera(3.0, vec3(0.0, -10.0, -20.0), vec3(1.0, 0.0, 0.0));//sul
 	
@@ -83,8 +69,8 @@ void criarObjetos() {
 	objetos.push_back(esfera6);
 
 	objetos.push_back(plano1);
-//	objetos.push_back(plano2);
-	objetos.push_back(plano3);
+	objetos.push_back(plano2);
+//	objetos.push_back(plano3);
 //	objetos.push_back(plano4);
 //	objetos.push_back(plano5);
 
@@ -245,7 +231,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 			case GLFW_KEY_DOWN		: 	moveu = RT_DOWN;
 										break;
 			case 'l'				: 	
-			case 'L'				: 	mudarEstadoLuz(estadoLuz, pontosDeLuz);
+			case 'L'				: 	estadoLuz = obterEstadoLuz(pontosDeLuz);
+										mudarEstadoLuz(estadoLuz, pontosDeLuz);
 			break;
 			case '0'				: 	indiceObjeto = 0;
 			break;
@@ -322,7 +309,7 @@ static void GLFW_MainLoop(GLFWwindow* window) {
 		}
 	
 
-   		if (ellapsed > 1.0f / 30.0f) {
+   		if (ellapsed > 1.0f / 20.0f) {
 	   		last = now;
 	        display(window);
 			glfwSwapBuffers(window);

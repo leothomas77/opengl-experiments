@@ -34,11 +34,11 @@ void criarObjetos() {
 	pontosDeLuz.push_back(luz1);
 	pontosDeLuz.push_back(luz2);
 
-	Esfera *esfera1 = new Esfera(3.0, vec3(0.0, 0.0, -20.0), vec3(0.9, 0.9, 0.9));//centro
+	Esfera *esfera1 = new Esfera(3.0, vec3(0.0, 0.0, -20.0), vec3(0.8, 0.8, 0.8));//centro
 	Esfera *esfera2 = new Esfera(3.0, vec3(10.0, 0.0,-20.0), vec3(0.0, 1.0, 0.0));//leste
 	Esfera *esfera3 = new Esfera(3.0, vec3(-10.0, 0.0, -20.0), vec3(0.0, 1.0, 1.0));//oeste
 	Esfera *esfera4 = new Esfera(3.0, vec3(0.0, 10.0, -20.0), vec3(1.0, 1.0, 0.0));//norte
-	Esfera *esfera5 = new Esfera(3.0, vec3(0.0, -10.0, -15.0), vec3(0.9, 0.9, 0.9));//sudoeste
+	Esfera *esfera5 = new Esfera(3.0, vec3(0.0, -10.0, -15.0), vec3(0.8, 0.8, 0.8));//sudoeste
 	
 	Esfera *esfera6 = new Esfera(3.0, vec3(0.0, -10.0, -20.0), vec3(1.0, 0.0, 0.0));//sul
 	
@@ -135,7 +135,6 @@ void display(GLFWwindow* window) {
 
 			float xMundo = (2 * ((x + 0.5) * invWidth) - 1) * angulo * aspectratio;
 			float yMundo = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
-
 			vec4 posicaoMundo = vec4(xMundo, yMundo, 1.0, 1.0); //* modelMat;
 
 			//modelMat = rotate( modelMat, angleY, vec3(xMundo, yMundo, 0.0));

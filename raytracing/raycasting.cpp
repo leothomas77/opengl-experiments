@@ -29,9 +29,9 @@ using namespace std;
 using namespace glm;
 
 #define MAX_RECURSOES	5
-#define REFRACAO_VIDRO 1.55f //indice de refracao do vidro
+#define REFRACAO_VIDRO 1.5f //indice de refracao do vidro
 #define REFRACAO_AR 1.0f
-#define DESVIO 0.0001f
+#define DESVIO 0.001f
 #define ATENUACAO 0.30f
 
 int nanoToMili(double nanoseconds) {
@@ -59,65 +59,51 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
     for(unsigned int i = 0; i < objetos.size(); i++) {
         float t1 = INFINITO;
         float t0 = INFINITO; 
-        //cout << "objeto processando..." << endl;
         if (objetos.at(i)->intersecao(origem, direcao, t0, t1)) {
-            //cout << "intersecao... t0" << t0 << " t1" << t1 << endl;
             if (t0 < 0) {
                 t0 = t1;
             }
             if (t0 < t) {
                 t = t0;
-                //intersecaoObjeto.tIntersecao = t;
-                //intersecaoObjeto.indiceObjeto = i;
-                //intersecoesObjetos.push_back(intersecaoObjeto);
                 objeto = objetos.at(i);
             }
         } 
     }
-
     if (objeto != NULL) {
         nivel++;//nivel de recursao
-        bool tocou = false;
         vec3 ambiente = objeto->superficie.ambienteRGB;
         vertice = origem + (direcao * t);
         normal = objeto->calcularNormal(origem, direcao, t);
         //cout << "Objeto tocado" << endl;
         //cout << "Objeto espelhamento" << objeto->superficie.espelhamento << endl;
         //cout << "Recursoes" << objeto->superficie.espelhamento << endl;
-        if (dot(direcao, normal) > 0) {
-            //cout << "Normal maior zero = cos > 0" << endl;
-            normal = -normal;
-            tocou = true;
-        }      
         if (nivel < MAX_RECURSOES) {
 
             if ((objeto->superficie.tipoSuperficie == reflexiva || 
                 objeto->superficie.tipoSuperficie == refrataria)) {
-               //cout << "Objeto espelhado" << endl;
-               float facingratio = dot(-direcao, normal);
-               float fresnel = mix(pow(1 - facingratio, 3), 1.0f, 0.1f);
+               //float facingratio = dot(-direcao, normal);
+               //float fresnel = mix(pow(1 - facingratio, 3), 1.0f, 0.1f);
                //cout << "fresnel " << fresnel << endl;
                vec3 raioRefletido = normalize(reflect(direcao, normal));
-               vec3 corRefletida = tracarRaio(vertice + normal * DESVIO, raioRefletido + normal * DESVIO, objetos, pontosDeLuz, nivel);
+               vec3 corRefletida = tracarRaio(vertice + normal * DESVIO, raioRefletido, objetos, pontosDeLuz, nivel);
                vec3 corRefratada = vec3(0);
-               float refrataria = objeto->superficie.tipoSuperficie == refrataria ? 1.0f : 0.0f;
+               //float refrataria = objeto->superficie.tipoSuperficie == refrataria ? 1.0f : 0.0f;
                if (objeto->superficie.tipoSuperficie == refrataria) {
-                   if (tocou) {
-                       //cout << "ar -> vidro" << endl;
-                       indice = REFRACAO_VIDRO / REFRACAO_AR;
-                   } else {
-                       //cout << " vidro -> ar" << endl;
-                       indice = REFRACAO_AR / REFRACAO_VIDRO;
-                   } //calculo da refracao
-                
-                   vec3 raioRefratado = normalize(direcao * refract(vertice, normal, indice));
-                   corRefratada = tracarRaio(vertice - normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
-                   cor = corRefratada * (1.0f - fresnel);
+                    //Normal > 0 = cos > 0 = entrou no objeto
+                    if (dot(direcao, normal) > 0) {
+                        normal = (-1.0f) * normal;
+                        indice = REFRACAO_VIDRO / REFRACAO_AR;
+                    } else {
+                     //Normal < 0 = cos < 0 = saiu do objeto
+                     indice = REFRACAO_AR / REFRACAO_VIDRO;
+                    }     
+                   vec3 raioRefratado = normalize(refract(direcao, normal, indice));
+                   corRefratada = tracarRaio(vertice + (- 1.0f) * normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
                } 
-               //cor = objeto->superficie.corRGB * (corRefletida * fresnel + corRefratada * (1 - fresnel) * 0.5f);
-               //cor = objeto->superficie.corRGB * (corRefletida + corRefratada * (1.0f - fresnel) * 0.5f);  
-               cor = cor + objeto->superficie.corRGB * corRefletida;
-           } else {
+
+               cor = objeto->superficie.corRGB * (corRefletida + corRefratada);  
+           
+            } else {
                 cor = objeto->superficie.corRGB;
                 vec3 especular = objeto->superficie.especularRGB;
                 vec3 difusa = objeto->superficie.difusaRGB;

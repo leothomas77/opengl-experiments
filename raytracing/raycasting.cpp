@@ -31,7 +31,7 @@ using namespace glm;
 #define MAX_RECURSOES	5
 #define REFRACAO_VIDRO 1.55f //indice de refracao do vidro
 #define REFRACAO_AR 1.0f
-#define DESVIO 0.01f
+#define DESVIO 0.0001f
 #define ATENUACAO 0.30f
 
 int nanoToMili(double nanoseconds) {
@@ -81,29 +81,27 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
         vec3 ambiente = objeto->superficie.ambienteRGB;
         vertice = origem + (direcao * t);
         normal = objeto->calcularNormal(origem, direcao, t);
-
- 
         //cout << "Objeto tocado" << endl;
         //cout << "Objeto espelhamento" << objeto->superficie.espelhamento << endl;
         //cout << "Recursoes" << objeto->superficie.espelhamento << endl;
+        if (dot(direcao, normal) > 0) {
+            //cout << "Normal maior zero = cos > 0" << endl;
+            normal = -normal;
+            tocou = true;
+        }      
         if (nivel < MAX_RECURSOES) {
+
             if ((objeto->superficie.tipoSuperficie == reflexiva || 
                 objeto->superficie.tipoSuperficie == refrataria)) {
                //cout << "Objeto espelhado" << endl;
-               float facingratio = dot(-direcao, -normal);
-               float fresnel = mix(pow(1 - facingratio, 3), 1, 0.1);
-               cout << "fresnel " << fresnel << endl;
+               float facingratio = dot(-direcao, normal);
+               float fresnel = mix(pow(1 - facingratio, 3), 1.0f, 0.1f);
+               //cout << "fresnel " << fresnel << endl;
                vec3 raioRefletido = normalize(reflect(direcao, normal));
-               vec3 corRefletida = tracarRaio(vertice - normal * DESVIO, raioRefletido + normal * DESVIO, objetos, pontosDeLuz, nivel);
+               vec3 corRefletida = tracarRaio(vertice + normal * DESVIO, raioRefletido + normal * DESVIO, objetos, pontosDeLuz, nivel);
                vec3 corRefratada = vec3(0);
                float refrataria = objeto->superficie.tipoSuperficie == refrataria ? 1.0f : 0.0f;
                if (objeto->superficie.tipoSuperficie == refrataria) {
-                    if (dot(direcao, normal) > 0) {
-                        //cout << "Normal maior zero = cos > 0" << endl;
-                        normal = -normal;
-                        tocou = true;
-                    }         
-                    // change the mix value to tweak the effect
                    if (tocou) {
                        //cout << "ar -> vidro" << endl;
                        indice = REFRACAO_VIDRO / REFRACAO_AR;
@@ -112,12 +110,13 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
                        indice = REFRACAO_AR / REFRACAO_VIDRO;
                    } //calculo da refracao
                 
-                   vec3 raioRefratado = normalize(refract(vertice, normal, indice));
-                   corRefratada = tracarRaio(vertice, raioRefratado, objetos, pontosDeLuz, nivel);
+                   vec3 raioRefratado = normalize(direcao * refract(vertice, normal, indice));
+                   corRefratada = tracarRaio(vertice - normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
+                   cor = corRefratada * (1.0f - fresnel);
                } 
-               cor = objeto->superficie.corRGB * (corRefletida * fresnel + corRefratada * (1 - fresnel) * 0.5f);
-               //cor = objeto->superficie.corRGB * (corRefletida * fresnel + corRefratada * (1.0f - fresnel) * refrataria);  
-    
+               //cor = objeto->superficie.corRGB * (corRefletida * fresnel + corRefratada * (1 - fresnel) * 0.5f);
+               //cor = objeto->superficie.corRGB * (corRefletida + corRefratada * (1.0f - fresnel) * 0.5f);  
+               cor = cor + objeto->superficie.corRGB * corRefletida;
            } else {
                 cor = objeto->superficie.corRGB;
                 vec3 especular = objeto->superficie.especularRGB;
@@ -146,10 +145,7 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
                 vec3 mediasComponentes = vec3(r / luzesLigadas, g / luzesLigadas, b / luzesLigadas);
                 
                 cor = cor * mediasComponentes;
-            
             }
- 
-        
         }
     }   
 
@@ -185,8 +181,6 @@ float temSombra(vec3 vertice, vector<PontoDeLuz> pontosDeLuz, vector<ObjetoImpli
             for(unsigned i=0; i < objetos.size(); i++) {
                     vec3 direcaoLuz = calcularDirecaoLuz(vertice, pontosDeLuz.at(k).posicao);
                     if (objetos.at(i)->intersecao(vertice, direcaoLuz, t1, t0)) {
-                        
-                        
                         return fator *= ATENUACAO;
                     }
             }

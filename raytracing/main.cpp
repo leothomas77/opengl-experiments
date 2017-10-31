@@ -34,11 +34,11 @@ void criarObjetos() {
 	pontosDeLuz.push_back(luz1);
 	pontosDeLuz.push_back(luz2);
 
-	Esfera *esfera1 = new Esfera(3.0, vec3(0.0, 0.0, -20.0), vec3(0.2, 0.2, 0.2));//centro
+	Esfera *esfera1 = new Esfera(3.0, vec3(0.0, 0.0, -20.0), vec3(0.9, 0.9, 0.9));//centro
 	Esfera *esfera2 = new Esfera(3.0, vec3(10.0, 0.0,-20.0), vec3(0.0, 1.0, 0.0));//leste
 	Esfera *esfera3 = new Esfera(3.0, vec3(-10.0, 0.0, -20.0), vec3(0.0, 1.0, 1.0));//oeste
 	Esfera *esfera4 = new Esfera(3.0, vec3(0.0, 10.0, -20.0), vec3(1.0, 1.0, 0.0));//norte
-	Esfera *esfera5 = new Esfera(3.0, vec3(-10.0, -10.0, -20.0), vec3(0.2, 0.2, 0.2));//sudoeste
+	Esfera *esfera5 = new Esfera(3.0, vec3(0.0, -10.0, -15.0), vec3(0.9, 0.9, 0.9));//sudoeste
 	
 	Esfera *esfera6 = new Esfera(3.0, vec3(0.0, -10.0, -20.0), vec3(1.0, 0.0, 0.0));//sul
 	
@@ -92,11 +92,12 @@ void desenharPixels(GLint vbo) {
 
 vec3 xyParaMundo(unsigned xTela, unsigned yTela, 
 	unsigned widthTela, unsigned heightTela, mat4 projMat, mat4 viewMat) {
-	float xMundo = (2 * xTela) / (widthTela - 1);
-	float yMundo = (-2* yTela) / (heightTela + 1);
-	mat4 inversaProj = inverse(projMat * viewMat);
+	// float xMundo = (2 * xTela) / (widthTela - 1);
+	// float yMundo = (-2* yTela) / (heightTela + 1);
+	// mat4 inversaProj = inverse(projMat * viewMat);
 	
-	return inversaProj * vec4(xMundo, yMundo, 0.0f, 1.0f);
+	// return inversaProj * vec4(xMundo, yMundo, 0.0f, 1.0f);
+	return vec3(0);
 }
 
 void atualizaFPS() {

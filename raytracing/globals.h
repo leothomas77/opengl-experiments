@@ -22,11 +22,11 @@
 #define MAX_INTERSECOES 10
 
 #ifndef RT_WIDTH
-#define RT_WIDTH 600
+#define RT_WIDTH 150
 #endif
 
 #ifndef RT_HEIGHT
-#define RT_HEIGHT 600
+#define RT_HEIGHT 150
 #endif
 
 using namespace std;

@@ -46,10 +46,11 @@ vec3 calcularPhong(vec3 origem, vec3 direcao, vec3 posicaoLuz,
 vec3 calcularEspecular(vec3 direcao, vec3 direcaoLuz, vec3 vertice, vec3 normal, vec3 especularRGB, unsigned expoente);
 float clip(float x, float min, float max);
 vec3 calcularDifusa(vec3 direcaoLuz, vec3 normal, vec3 difusa);
-bool temSombra(vec3 vertice, vector<PontoDeLuz> pontosDeLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado);
+float temSombra(vec3 vertice, vector<PontoDeLuz> pontosDeLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado);
 void mudarEstadoLuz(unsigned &estado, vector<PontoDeLuz> &pontosDeLuz);	
 vec3 calcularDirecaoLuz(vec3 vertice, vec3 posicaoLuz);
 unsigned obterEstadoLuz(vector<PontoDeLuz> pontosDeLuz);
+float mix(const float &a, const float &b, const float &mix);
 	
 	
 

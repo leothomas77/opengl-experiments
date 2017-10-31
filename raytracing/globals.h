@@ -46,7 +46,7 @@ unsigned moveu = RT_STOP;
 unsigned indiceObjeto = 0;
 
 double  last;
-
+double  ultima;
 vector<ObjetoImplicito*> objetos;
 vector<PontoDeLuz> pontosDeLuz;
 unsigned estadoLuz = 2;//LUZ_12
@@ -55,7 +55,10 @@ unsigned int winWidth 	= RT_WIDTH, winHeight 	= RT_HEIGHT;
 float 	angleX 	= 	0.0f,
 		angleY	= 	0.0f,
 		distanciaCamera = 5.0f;
-
-
+//C[alculo do FPS
+long lastFrame;
+long delta;
+unsigned fps;
+long lastFPS;
 
 #endif //__RTGLOBALS__	

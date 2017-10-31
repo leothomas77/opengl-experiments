@@ -29,7 +29,7 @@ using namespace std;
 using namespace glm;
 
 #define MAX_RECURSOES	5
-#define REFRACAO_VIDRO 1/3.0f //indice de refracao do vidro
+#define REFRACAO_VIDRO 1.55f //indice de refracao do vidro
 #define REFRACAO_AR 1.0f
 #define DESVIO 0.01f
 #define ATENUACAO 0.30f
@@ -54,7 +54,8 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
     vec3 cor = BACKGROUND; 
     vec3 normal = vec3(0); 
     vec3 vertice = vec3(0);
-
+    float indice;
+    
     for(unsigned int i = 0; i < objetos.size(); i++) {
         float t1 = INFINITO;
         float t0 = INFINITO; 
@@ -81,65 +82,76 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos,
         vertice = origem + (direcao * t);
         normal = objeto->calcularNormal(origem, direcao, t);
 
-        if (dot(direcao, normal) > 0) {
-            //cout << "Normal maior zero = obliquo" << endl;
-            normal = -normal;
-            tocou = true;
-        }
+ 
         //cout << "Objeto tocado" << endl;
         //cout << "Objeto espelhamento" << objeto->superficie.espelhamento << endl;
         //cout << "Recursoes" << objeto->superficie.espelhamento << endl;
-        if (objeto->superficie.tipoSuperficie == reflexiva && nivel < MAX_RECURSOES) {
-            //cout << "Objeto espelhado" << endl;
-            vec3 raioRefletido = reflect(direcao, normal);
-            raioRefletido = normalize(raioRefletido); 
-            cor = tracarRaio(vertice , raioRefletido, objetos, pontosDeLuz, nivel);
-        } else if (objeto->superficie.tipoSuperficie == refrataria && nivel < MAX_RECURSOES) { 
-            float indiceRefracao ;
-            //calculo da refracao
-            if (tocou) {
-                //cout << "refrata vidro" << endl;
-                indiceRefracao = REFRACAO_VIDRO;
-            } else {
-                //cout << "refrata ar" << endl;
-                indiceRefracao = REFRACAO_AR;
-            } 
-            vec3 raioRefratado = normalize(refract(vertice, normal, indiceRefracao));
-            cor = tracarRaio(vertice - normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
-        } else {
-            cor = objeto->superficie.corRGB;
-            vec3 especular = objeto->superficie.especularRGB;
-            vec3 difusa = objeto->superficie.difusaRGB;
-            float atenuacao = 0.68f;
-            unsigned expoente = objeto->superficie.expoente;
-            float r = 0.0f, g = 0.0f, b = 0.0f;
-            //calcula a contribuicao de cada luz na cor
-            unsigned luzesLigadas = 0;
-            
-            for (unsigned k=0; k < pontosDeLuz.size(); k++) {
-                if (pontosDeLuz.at(k).estado == LIGADA) {
-                    luzesLigadas++;
-                    vec3 direcaoLuz = normalize(pontosDeLuz.at(k).posicao - vertice);
-                    vec3 difusaEspecular = 
-                        calcularDifusa(direcaoLuz, normal, difusa) +
-                        calcularEspecular(direcao, pontosDeLuz.at(k).posicao, vertice, normal, especular, expoente);
-                    r += difusaEspecular.r;
-                    g += difusaEspecular.g;
-                    b += difusaEspecular.b;
-     
+        if (nivel < MAX_RECURSOES) {
+            if ((objeto->superficie.tipoSuperficie == reflexiva || 
+                objeto->superficie.tipoSuperficie == refrataria)) {
+               //cout << "Objeto espelhado" << endl;
+               float facingratio = dot(-direcao, -normal);
+               float fresnel = mix(pow(1 - facingratio, 3), 1, 0.1);
+               cout << "fresnel " << fresnel << endl;
+               vec3 raioRefletido = normalize(reflect(direcao, normal));
+               vec3 corRefletida = tracarRaio(vertice - normal * DESVIO, raioRefletido + normal * DESVIO, objetos, pontosDeLuz, nivel);
+               vec3 corRefratada = vec3(0);
+               float refrataria = objeto->superficie.tipoSuperficie == refrataria ? 1.0f : 0.0f;
+               if (objeto->superficie.tipoSuperficie == refrataria) {
+                    if (dot(direcao, normal) > 0) {
+                        //cout << "Normal maior zero = cos > 0" << endl;
+                        normal = -normal;
+                        tocou = true;
+                    }         
+                    // change the mix value to tweak the effect
+                   if (tocou) {
+                       //cout << "ar -> vidro" << endl;
+                       indice = REFRACAO_VIDRO / REFRACAO_AR;
+                   } else {
+                       //cout << " vidro -> ar" << endl;
+                       indice = REFRACAO_AR / REFRACAO_VIDRO;
+                   } //calculo da refracao
+                
+                   vec3 raioRefratado = normalize(refract(vertice, normal, indice));
+                   corRefratada = tracarRaio(vertice, raioRefratado, objetos, pontosDeLuz, nivel);
+               } 
+               cor = objeto->superficie.corRGB * (corRefletida * fresnel + corRefratada * (1 - fresnel) * 0.5f);
+               //cor = objeto->superficie.corRGB * (corRefletida * fresnel + corRefratada * (1.0f - fresnel) * refrataria);  
+    
+           } else {
+                cor = objeto->superficie.corRGB;
+                vec3 especular = objeto->superficie.especularRGB;
+                vec3 difusa = objeto->superficie.difusaRGB;
+                float atenuacao = 0.68f;
+                unsigned expoente = objeto->superficie.expoente;
+                float r = 0.0f, g = 0.0f, b = 0.0f;
+                //calcula a contribuicao de cada luz na cor
+                unsigned luzesLigadas = 0;
+                
+                for (unsigned k=0; k < pontosDeLuz.size(); k++) {
+                    if (pontosDeLuz.at(k).estado == LIGADA) {
+                        luzesLigadas++;
+                        vec3 direcaoLuz = normalize(pontosDeLuz.at(k).posicao - vertice);
+                        vec3 difusaEspecular = 
+                            calcularDifusa(direcaoLuz, normal, difusa) +
+                            calcularEspecular(direcao, pontosDeLuz.at(k).posicao, vertice, normal, especular, expoente);
+                        r += difusaEspecular.r;
+                        g += difusaEspecular.g;
+                        b += difusaEspecular.b;
+        
+                    }
                 }
+                //cout << "luzes ligadas:" << luzesLigadas << endl;
+                luzesLigadas == 0 ? luzesLigadas = 1 : luzesLigadas = luzesLigadas; //evita divisao por zero
+                vec3 mediasComponentes = vec3(r / luzesLigadas, g / luzesLigadas, b / luzesLigadas);
+                
+                cor = cor * mediasComponentes;
+            
             }
-            //cout << "luzes ligadas:" << luzesLigadas << endl;
-            luzesLigadas == 0 ? luzesLigadas = 1 : luzesLigadas = luzesLigadas; //evita divisao por zero
-            vec3 mediasComponentes = vec3(r / luzesLigadas, g / luzesLigadas, b / luzesLigadas);
-             
-            cor = cor * mediasComponentes;
-         
+ 
+        
         }
-        if (temSombra(vertice, pontosDeLuz , objetos, objeto)) {
-            cor = cor * ATENUACAO;
-        }
-    }
+    }   
 
     return cor;
 }
@@ -163,24 +175,24 @@ vec3 calcularDirecaoLuz(vec3 vertice, vec3 posicaoLuz) {
 /*
 Verifica na cena se do ponto tocado ao ponto de luz existe intersecao com algum outro objeto da cena
 */
-bool temSombra(vec3 vertice, vector<PontoDeLuz> pontosDeLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado) {
+float temSombra(vec3 vertice, vector<PontoDeLuz> pontosDeLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado) {
     float t1 = INFINITO, t0 = INFINITO, t = INFINITO;
     bool retorno = false;
+    unsigned intersecoes;
+    float fator = 1;
     for (unsigned k=0; k < pontosDeLuz.size(); k++) {
         if (pontosDeLuz.at(k).estado == LIGADA) {
             for(unsigned i=0; i < objetos.size(); i++) {
-                if (objetos.at(i) != objetoTocado) {
                     vec3 direcaoLuz = calcularDirecaoLuz(vertice, pontosDeLuz.at(k).posicao);
                     if (objetos.at(i)->intersecao(vertice, direcaoLuz, t1, t0)) {
-                        return true;// saida do loop duplo
-                    } else {
-                        return false;
+                        
+                        
+                        return fator *= ATENUACAO;
                     }
-                } 
             }
         }
     }
-    return retorno;
+    return fator;
 }
 
 unsigned obterEstadoLuz(vector<PontoDeLuz> pontosDeLuz) {
@@ -233,4 +245,8 @@ void salvarImagem(GLFWwindow* window,  vector<vec3> imagem, unsigned width, unsi
 		(unsigned char)(std::min(float(1), imagem[i].z) * 255);
 	}
 	ofs.close();
+}
+
+float mix(const float &a, const float &b, const float &mix) {
+    return b * mix + a * (1 - mix);
 }

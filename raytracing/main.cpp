@@ -34,11 +34,11 @@ void criarObjetos() {
 	pontosDeLuz.push_back(luz1);
 	pontosDeLuz.push_back(luz2);
 
-	Esfera *esfera1 = new Esfera(3.0, vec3(0.0, 0.0, -20.0), vec3(0.1, 0.1, 0.1));//centro
+	Esfera *esfera1 = new Esfera(3.0, vec3(0.0, 0.0, -20.0), vec3(0.2, 0.2, 0.2));//centro
 	Esfera *esfera2 = new Esfera(3.0, vec3(10.0, 0.0,-20.0), vec3(0.0, 1.0, 0.0));//leste
 	Esfera *esfera3 = new Esfera(3.0, vec3(-10.0, 0.0, -20.0), vec3(0.0, 1.0, 1.0));//oeste
 	Esfera *esfera4 = new Esfera(3.0, vec3(0.0, 10.0, -20.0), vec3(1.0, 1.0, 0.0));//norte
-	Esfera *esfera5 = new Esfera(3.0, vec3(-10.0, -10.0, -20.0), vec3(0.1, 0.1, 0.1));//sudoeste
+	Esfera *esfera5 = new Esfera(3.0, vec3(-10.0, -10.0, -20.0), vec3(0.2, 0.2, 0.2));//sudoeste
 	
 	Esfera *esfera6 = new Esfera(3.0, vec3(0.0, -10.0, -20.0), vec3(1.0, 0.0, 0.0));//sul
 	
@@ -69,7 +69,7 @@ void criarObjetos() {
 	objetos.push_back(esfera6);
 
 	objetos.push_back(plano1);
-	objetos.push_back(plano2);
+//	objetos.push_back(plano2);
 //	objetos.push_back(plano3);
 //	objetos.push_back(plano4);
 //	objetos.push_back(plano5);
@@ -97,6 +97,10 @@ vec3 xyParaMundo(unsigned xTela, unsigned yTela,
 	mat4 inversaProj = inverse(projMat * viewMat);
 	
 	return inversaProj * vec4(xMundo, yMundo, 0.0f, 1.0f);
+}
+
+void atualizaFPS() {
+
 }
 
 void display(GLFWwindow* window) {
@@ -301,7 +305,6 @@ static void GLFW_MainLoop(GLFWwindow* window) {
 
    		double now = glfwGetTime(); 
 		double ellapsed = now - last;
-		   
 
 		ObjetoImplicito* objetoSelecionado = NULL;
 		if (indiceObjeto <= objetos.size()) {
@@ -309,8 +312,8 @@ static void GLFW_MainLoop(GLFWwindow* window) {
 		}
 	
 
-   		if (ellapsed > 1.0f / 20.0f) {
-	   		last = now;
+   		if (ellapsed > 1.0f / 30.0f) {//intervalo de atualizacao da tela
+			last = now;
 	        display(window);
 			glfwSwapBuffers(window);
 			if (moveu != RT_STOP && objetoSelecionado != NULL) {
@@ -318,7 +321,11 @@ static void GLFW_MainLoop(GLFWwindow* window) {
 			}
 			moveu = RT_STOP;
 	
-	    }
+		}
+		
+		if (ellapsed > 1000) {
+
+		}
 
         glfwPollEvents();
     	}

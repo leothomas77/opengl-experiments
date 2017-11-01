@@ -21,14 +21,16 @@
 - [x] redefinir a cena II - reposicionamentos para visualizar melhor o efeito 
 - [x] implementar transmissao
 - [x] revisar transmissao
-- [] implementar sombra - problema com multiplos planos
+- [x] implementar sombra - problema com multiplos planos
 - [x] implementar segunda fonte de luz - problema com multipos planos
 ### Marco IV - reflezão e transmissão implementados
 - [x] interagir com programa
 - [x] preparar matrizes
-- [] movimentar camera
-- [x] movimentar objeto
+- [x] movimentar camera
+- [] movimentar camera - melhoria
+- [x] movimentar objeto 
 ### Marco V - movimento da câmera implementado
-- [] revisao codigo
-- [] preparar apresentação e documentação para entrega
+- [x] revisao codigo
+- [] calculo FPS
+- [x] preparar apresentação e documentação para entrega
 ### Entrega final 01/11/2017 no moodle

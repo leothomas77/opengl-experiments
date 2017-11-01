@@ -24,11 +24,11 @@ void criarObjetos() {
 	cout << "Criando objetos da cena" << endl;
 	
 	PontoDeLuz luz1;
-	luz1.posicao = vec3(8.0f, 10.0f, 10.0f);
+	luz1.posicao = vec3(8.0f, 50.0f, 10.0f);
 	luz1.estado = DESLIGADA;
 
 	PontoDeLuz luz2;
-	luz2.posicao = vec3(-8.0f, 10.0f, 10.0f);
+	luz2.posicao = vec3(-8.0f, 50.0f, 10.0f);
 	luz2.estado = LIGADA;	
 	
 	pontosDeLuz.push_back(luz1);
@@ -69,7 +69,7 @@ void criarObjetos() {
 	objetos.push_back(esfera6);
 
 	objetos.push_back(plano1);
-//	objetos.push_back(plano2);
+	objetos.push_back(plano2);
 //	objetos.push_back(plano3);
 //	objetos.push_back(plano4);
 //	objetos.push_back(plano5);
@@ -94,67 +94,53 @@ void atualizaFPS() {
 
 }
 
-void display(GLFWwindow* window) {
-
-
-	vec3 origemRaio = vec3(0.0f, 0.0f, 1.0f);
-	glm::vec3 direcaoRaio	= glm::vec3(0.0f, 0.0f, -1.0f);
-
-	//mat4 model = translate(mat4(1.0f), vec3(0.0f, 0.0f, 1.0f));
-	mat4 model = mat4(1.0f);
-	//Rotacao da camera nos eixos
+void rotaciona(unsigned moveu, mat4 &model) {
 	if (moveu != RT_STOP) {
 		switch (moveu) {
 			case RT_Y_HORARIO:		anguloY += PASSO_CAMERA;
+									model = rotate(model, anguloY, vec3(0.0f, 1.0f, 0.0f));
 									break;
 			case RT_Y_ANTI_HORARIO: anguloY -= PASSO_CAMERA;
+									model = rotate(model, anguloY, vec3(0.0f, 1.0f, 0.0f));
 									break;
 			case RT_X_HORARIO:		anguloX += PASSO_CAMERA;
+									model = rotate(model, anguloX, vec3(1.0f, 0.0f, 0.0f));
 									break;
 			case RT_X_ANTI_HORARIO: anguloX -= PASSO_CAMERA;
+									model = rotate(model, anguloX, vec3(1.0f, 0.0f, 0.0f));
 									break;
 						
 		}
-		model = rotate(model, anguloX, vec3(1.0f, 0.0f, 0.0f));
-		model = rotate(model, anguloY, vec3(0.0f, 1.0f, 0.0f));
 	}
+}
+
+void display(GLFWwindow* window) {
+	mat4 model = mat4(1.0f);
+	model = translate(mat4(1.0f), vec3(0.0f, 0.0f, 1.0f));
+	//Rotacao da camera nos eixos
+	rotaciona(moveu, model);
+	//Inicializa as matrizes fixas
     mat4 projection = frustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f);
     vec4 viewport(0.0f, 0.0f, float(winHeight), float(winWidth));
 	vector<vec3> cores;
+	vec3 origemRaio = vec3(0.0f, 0.0f, 1.0f);
 
 	for (unsigned int y = 0; y < winHeight ; y++) {
 		for (unsigned int x = 0; x < winWidth; x++) {
-
 			vec3 posicaoTela = vec3(x, y, 0);
 			vec3 posicaoMundo = glm::unProject(posicaoTela, model, projection, viewport);
-			
-			direcaoRaio = normalize(vec3(posicaoMundo.x, posicaoMundo.y, -1) -vec3(0));
+		
+			vec3 direcaoRaio = normalize(vec3(posicaoMundo.x, posicaoMundo.y, -1));
 			vec3 cor = tracarRaio(origemRaio, direcaoRaio, objetos, pontosDeLuz, 0);
 			cores.push_back(cor);
 		}
 	}
 
-	//glfwSetWindowShouldClose(window, true);
+	//glfwSetWindowShouldClose(window, true); //habilitar caso queira forcar o encerramento do programa
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	//mat4 P 	= perspective( 70.0, 1.0, 0.01, 20.0);
-	//mat4 V 	= glm::lookAt(	vec3(6.0, 6.0, 6.0),
-	//								vec3(0.0, 0.0, 0.0), 
-	//								vec3(0.0, 1.0, 0.0) );
-	//mat4 M 	= mat4(1.0);
-
-	//M = rotate( M, angleY, vec3(0.0, 1.0, 0.0));
-
-	//mat4 MVP 	=  P * V * M;
-
-	//int loc = glGetUniformLocation( shader, "uMVP" );
-	//glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(MVP));
-
 	alocarBuffer(cores);
 	desenharPixels(vbo);
-
-	cores.clear();	
-
+	cores.clear();
 	
 }
 

@@ -32,18 +32,10 @@ using namespace glm;
 #define REFRACAO_VIDRO 1.5f //indice de refracao do vidro
 #define REFRACAO_AR 1.0f
 #define DESVIO 0.001f
-#define ATENUACAO 0.30f
+#define SOMBREAMENTO 0.30f
 
 int nanoToMili(double nanoseconds) {
     return (int)(nanoseconds*0x431BDE82)>>18;
-}
-
-vec3 calcularRaio(vec3 origem, vec3 direcao) {
-    return vec3(0, 0, 0);
-}
-
-void shade(vec3 origemRaio, vec3 direcaoRaio, float t) {
-    return;
 }
 
 float interceptarObjetos(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objeto) {
@@ -58,13 +50,12 @@ float interceptarObjetos(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> obj
             if (t0 < t) {
                 t = t0;
                 objeto = objetos.at(i);
-                cout << "interceptou" << endl;
+                //cout << "interceptou" << endl;
             }
         } 
     }
     return t;
 }
-
 
 vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vector<PontoDeLuz> pontosDeLuz, unsigned int nivel) {
     float t = INFINITO;
@@ -101,7 +92,8 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
         //cout << "Recursoes" << objeto->superficie.espelhamento << endl;
         if (nivel < MAX_RECURSOES) {
             cor = objeto->superficie.corRGB; //cor de partida (nunca pode ser zero)
-
+            
+          
             if ((objeto->superficie.tipoSuperficie == reflexiva || 
                 objeto->superficie.tipoSuperficie == refrataria)) {
 
@@ -122,6 +114,10 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
                 cor *= calcularContribuicoesLuzes(pontosDeLuz, vertice, normal, direcao, objeto);
             
             }
+
+            float corSombreada = calcularSombras(vertice, normal, pontosDeLuz, objetos, objeto);
+            cor -= corSombreada; //cor nao pode ser negativa
+
         }
     }   
 
@@ -183,29 +179,25 @@ vec3 calcularContribuicoesLuzes(vector<PontoDeLuz> pontosDeLuz, vec3 vertice, ve
     //cout << "luzes ligadas:" << luzesLigadas << endl;
     luzesLigadas == 0 ? luzesLigadas = 1 : luzesLigadas = luzesLigadas; //evita divisao por zero
     return vec3(r / luzesLigadas, g / luzesLigadas, b / luzesLigadas);
-
-
 }
 
 /*
 Verifica na cena se do ponto tocado ao ponto de luz existe intersecao com algum outro objeto da cena
 */
-bool temSombra(vec3 vertice, vector<PontoDeLuz> pontosDeLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado) {
-    float t1 = INFINITO, t0 = INFINITO, t = INFINITO;
-    bool retorno = false;
-    for (unsigned k=0; k < pontosDeLuz.size(); k++) {
+float calcularSombras(vec3 vertice, vec3 normal, vector<PontoDeLuz> pontosDeLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado) {
+    for (unsigned k = 0; k < pontosDeLuz.size(); k++) {
         if (pontosDeLuz.at(k).estado == LIGADA) {
-            for(unsigned i=0; i < objetos.size(); i++) {
-                    vec3 direcaoLuz = calcularDirecaoLuz(vertice, pontosDeLuz.at(k).posicao);
-                    if (objetos.at(i)->intersecao(vertice, direcaoLuz, t1, t0)) {
-                        return false;
-                    } else {
-                        return true;
-                    }
+            vec3 raioObjetoLuz = normalize(pontosDeLuz.at(k).posicao - vertice);
+            float distanciaLuz = length(raioObjetoLuz);
+            float t = INFINITO;
+            for (unsigned i = 0; i < objetos.size(); i++) {
+                float t0 = INFINITO, t1 = INFINITO;
+                if (objetos.at(i)->intersecao(vertice + normal * DESVIO, raioObjetoLuz, t0, t1) && objetos.at(i) != objetoTocado) {
+                    return SOMBREAMENTO;
+                }
             }
         }
     }
-    return retorno;
 }
 
 unsigned obterEstadoLuz(vector<PontoDeLuz> pontosDeLuz) {

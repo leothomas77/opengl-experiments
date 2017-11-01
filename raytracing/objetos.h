@@ -37,7 +37,7 @@ struct Superficie {
     vec3 corRGB; 
     vec3 ambienteRGB = vec3(0.18, 0.18, 0.18);
     vec3 especularRGB = vec3(1.0, 1.0, 1.0);
-    vec3 difusaRGB = vec3(0.72, 0.72, 0.72);
+    vec3 difusaRGB = vec3(0.8, 0.8, 0.8);
     unsigned expoente = 38;
     TipoSuperficie tipoSuperficie = solida;
 };

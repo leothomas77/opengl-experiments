@@ -24,11 +24,11 @@ void criarObjetos() {
 	cout << "Criando objetos da cena" << endl;
 	
 	PontoDeLuz luz1;
-	luz1.posicao = vec3(8.0f, 8.0f, 10.0f);
+	luz1.posicao = vec3(8.0f, 10.0f, 10.0f);
 	luz1.estado = DESLIGADA;
 
 	PontoDeLuz luz2;
-	luz2.posicao = vec3(-8.0f, 8.0f, 10.0f);
+	luz2.posicao = vec3(-8.0f, 10.0f, 10.0f);
 	luz2.estado = LIGADA;	
 	
 	pontosDeLuz.push_back(luz1);
@@ -90,16 +90,6 @@ void desenharPixels(GLint vbo) {
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
-vec3 xyParaMundo(unsigned xTela, unsigned yTela, 
-	unsigned widthTela, unsigned heightTela, mat4 projMat, mat4 viewMat) {
-	// float xMundo = (2 * xTela) / (widthTela - 1);
-	// float yMundo = (-2* yTela) / (heightTela + 1);
-	// mat4 inversaProj = inverse(projMat * viewMat);
-	
-	// return inversaProj * vec4(xMundo, yMundo, 0.0f, 1.0f);
-	return vec3(0);
-}
-
 void atualizaFPS() {
 
 }
@@ -110,10 +100,6 @@ void display(GLFWwindow* window) {
 	vec3 origemRaio = vec3(0.0f, 0.0f, 1.0f);
 	glm::vec3 direcaoRaio	= glm::vec3(0.0f, 0.0f, -1.0f);
 	
-	vec3 up			= vec3(0.0, 1.0, 0.0);
-	mat4 viewMat	= glm::lookAt(origemRaio, direcaoRaio, up);
-	mat4 projMat 	= perspective( 70.0, 1.0, 0.01, 100.0);
-	mat4 modelMat 	= mat4(1.0);
 
 //Rotacao do modelo (movimentacao da cena)
 	// ModelMat = rotate( ModelMat, angleX, vec3(1.0, 0.0, 0.0));
@@ -122,23 +108,17 @@ void display(GLFWwindow* window) {
 	//mat4 MVP 			= ProjMat * ViewMat * ModelMat;
 
 //Inicia o tracado de raios de cada ponto da tela ate o objeto
-	
-	float invWidth = 1 / float(winWidth), invHeight = 1 / float(winHeight);
-    float fov = 90, aspectratio = winWidth / float(winHeight);
-    float angulo = tan(M_PI * 0.5 * fov / 180.);
 
+    mat4 model = translate(mat4(1.0f), vec3(0.0f, 0.0f, 10.0f));
+    mat4 projection = frustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f);
+    vec4 viewport(0.0f, 0.0f, float(winHeight), float(winWidth));
 	vector<vec3> cores;
 
-
-	for (unsigned int y = winHeight; y > 0 ; y--) {
+	for (unsigned int y = 0; y < winHeight ; y++) {
 		for (unsigned int x = 0; x < winWidth; x++) {
 
-			float xMundo = (2 * ((x + 0.5) * invWidth) - 1) * angulo * aspectratio;
-			float yMundo = (1 - 2 * ((y + 0.5) * invHeight)) * angulo;
-			vec4 posicaoMundo = vec4(xMundo, yMundo, 1.0, 1.0); //* modelMat;
-
-			//modelMat = rotate( modelMat, angleY, vec3(xMundo, yMundo, 0.0));
-			
+			vec3 posicaoTela = vec3(x, y, 0);
+			vec3 posicaoMundo = glm::unProject(posicaoTela, model, projection, viewport);
 			
 			direcaoRaio = normalize(vec3(posicaoMundo.x, posicaoMundo.y, -1) -vec3(0));
 			vec3 cor = tracarRaio(origemRaio, direcaoRaio, objetos, pontosDeLuz, 0);
@@ -146,6 +126,7 @@ void display(GLFWwindow* window) {
 		}
 	}
 
+	//glfwSetWindowShouldClose(window, true);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	//mat4 P 	= perspective( 70.0, 1.0, 0.01, 20.0);

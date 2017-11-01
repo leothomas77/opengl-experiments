@@ -20,12 +20,12 @@
 - [x] implementar reflexao
 - [x] redefinir a cena II - reposicionamentos para visualizar melhor o efeito 
 - [x] implementar transmissao
-- [] revisar transmissao
-- [x] implementar sombra - problema com multiplos planos
+- [x] revisar transmissao
+- [] implementar sombra - problema com multiplos planos
 - [x] implementar segunda fonte de luz - problema com multipos planos
 ### Marco IV - reflezão e transmissão implementados
 - [x] interagir com programa
-- [] preparar matrizes
+- [x] preparar matrizes
 - [] movimentar camera
 - [x] movimentar objeto
 ### Marco V - movimento da câmera implementado

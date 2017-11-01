@@ -18,11 +18,15 @@ enum TipoSuperficie {
     reflexiva, refrataria, solida
 };
 
-#define RT_LEFT     0
-#define RT_RIGHT    1 
-#define RT_UP       2 
-#define RT_DOWN     3
-#define RT_STOP     4
+#define RT_LEFT             0
+#define RT_RIGHT            1 
+#define RT_UP               2 
+#define RT_DOWN             3
+#define RT_STOP             4
+#define RT_Y_HORARIO        5
+#define RT_Y_ANTI_HORARIO   6
+#define RT_X_HORARIO        7
+#define RT_X_ANTI_HORARIO   8
 #define PASSO_OBJETO 0.02f
 #define VELOCIDADE 1.2f
 #define ACELERACAO -2.0f

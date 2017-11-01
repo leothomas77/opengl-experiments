@@ -22,11 +22,11 @@
 #define MAX_INTERSECOES 10
 
 #ifndef RT_WIDTH
-#define RT_WIDTH 640
+#define RT_WIDTH 100
 #endif
 
 #ifndef RT_HEIGHT
-#define RT_HEIGHT 640
+#define RT_HEIGHT 100
 #endif
 
 using namespace std;
@@ -42,6 +42,7 @@ vec3 deslocamento(0);
 
 float 	velocidade = 2.0f;
 unsigned moveu = RT_STOP;
+float 	anguloX = 0.0f, anguloY	= 0.0f, anguloZ	= 0.0f;
 //Movimento do objeto
 unsigned indiceObjeto = 0;
 

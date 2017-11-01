@@ -99,17 +99,25 @@ void display(GLFWwindow* window) {
 
 	vec3 origemRaio = vec3(0.0f, 0.0f, 1.0f);
 	glm::vec3 direcaoRaio	= glm::vec3(0.0f, 0.0f, -1.0f);
-	
 
-//Rotacao do modelo (movimentacao da cena)
-	// ModelMat = rotate( ModelMat, angleX, vec3(1.0, 0.0, 0.0));
-	// ModelMat = rotate( ModelMat, angleZ, vec3(0.0, 0.0, 1.0));
-//Unifica as 3 matrizes em uma 
-	//mat4 MVP 			= ProjMat * ViewMat * ModelMat;
-
-//Inicia o tracado de raios de cada ponto da tela ate o objeto
-
-    mat4 model = translate(mat4(1.0f), vec3(0.0f, 0.0f, 10.0f));
+	//mat4 model = translate(mat4(1.0f), vec3(0.0f, 0.0f, 1.0f));
+	mat4 model = mat4(1.0f);
+	//Rotacao da camera nos eixos
+	if (moveu != RT_STOP) {
+		switch (moveu) {
+			case RT_Y_HORARIO:		anguloY += PASSO_CAMERA;
+									break;
+			case RT_Y_ANTI_HORARIO: anguloY -= PASSO_CAMERA;
+									break;
+			case RT_X_HORARIO:		anguloX += PASSO_CAMERA;
+									break;
+			case RT_X_ANTI_HORARIO: anguloX -= PASSO_CAMERA;
+									break;
+						
+		}
+		model = rotate(model, anguloX, vec3(1.0f, 0.0f, 0.0f));
+		model = rotate(model, anguloY, vec3(0.0f, 1.0f, 0.0f));
+	}
     mat4 projection = frustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f);
     vec4 viewport(0.0f, 0.0f, float(winHeight), float(winWidth));
 	vector<vec3> cores;
@@ -214,6 +222,18 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 			case GLFW_KEY_UP		: 	moveu = RT_UP;
 										break;
 			case GLFW_KEY_DOWN		: 	moveu = RT_DOWN;
+										break;
+			case 'a'				: 	
+			case 'A'				: 	moveu = RT_Y_HORARIO;
+										break;
+			case 'D'				: 	
+			case 'd'				: 	moveu = RT_Y_ANTI_HORARIO;
+										break;
+			case 'w'				: 	
+			case 'W'				: 	moveu = RT_X_HORARIO;
+										break;
+			case 'X'				: 	
+			case 'x'				: 	moveu = RT_X_ANTI_HORARIO;
 										break;
 			case 'l'				: 	
 			case 'L'				: 	estadoLuz = obterEstadoLuz(pontosDeLuz);

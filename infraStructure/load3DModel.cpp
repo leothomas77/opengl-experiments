@@ -318,7 +318,7 @@ void display(void) {
 										lookAt, 
 										up);
 
-	glm::mat4 ProjMat 	= glm::perspective( 70.0, 1.0, 0.01, 100.0);
+	glm::mat4 ProjMat 	= glm::perspective( 70.0, 1.0, 0.01, 50.0);
 	glm::mat4 ModelMat 	= glm::mat4(1.0);
 
 	ModelMat = glm::rotate( ModelMat, angleX, glm::vec3(1.0, 0.0, 0.0));

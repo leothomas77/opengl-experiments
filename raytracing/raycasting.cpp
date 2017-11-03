@@ -99,23 +99,34 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
                vec3 raioRefletido = normalize(reflect(direcao, normal));
                vec3 corRefletida = tracarRaio(vertice + normal * DESVIO, raioRefletido, objetos, pontosDeLuz, nivel);
                vec3 corRefratada = vec3(0);
+               float coseno;
                
                if (objeto->superficie.tipoSuperficie == refrataria) {
                    float indice;
                    float dotDirecaoNormal = dot(direcao, normal);
-                   float cosseno;
+                   vec3 raioRefratado;
                    if (dotDirecaoNormal < 0) {//caso1 raio transmitido
-                        vec3 raioRefratado = normalize(refract(direcao, normal, indice));
+                        raioRefratado = normalize(refract(direcao, normal, 1.0f));
                         corRefratada = tracarRaio(vertice + (- 1.0f) * normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
-                        cosseno = -1.0f * dotDirecaoNormal;
+                        coseno = -1.0f * dotDirecaoNormal;
                     } else {
-
+                        raioRefratado = refract(direcao, (-1.0f)* normal, 1.0f/1.5f);
+                        if (length(raioRefratado) > 0.0f) {
+                            corRefratada = tracarRaio(vertice + (- 1.0f) * normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
+                            coseno = dotDirecaoNormal;
+                        } else {
+                            corRefratada = vec3(0);
+                        }                        
                    }
-                   vec3 raioRefratado = calcularRaioRefratado(direcao, normal);
-                   corRefratada = tracarRaio(vertice + (- 1.0f) * normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
+                   //vec3 raioRefratado = calcularRaioRefratado(direcao, normal);
+                   //corRefratada = tracarRaio(vertice + (- 1.0f) * normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
                }
                 //a cor final sera uma composicao da cor original com cor refletida e refratada
-                cor *=  (corRefletida + corRefratada);  
+                //cor *=  (corRefletida + corRefratada); 
+                //fresnel
+                float r0 = pow((1.5f - 1.0f), 2) / pow((1.5f + 1.0f), 2);
+                float r = r0 + (1.0f - r0) * pow((1.0f - coseno), 5);
+                cor = r * corRefletida + (1.0f - r) * corRefratada; 
 
             } else {
                 

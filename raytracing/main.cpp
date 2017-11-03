@@ -2,6 +2,8 @@
 #include <vector>
 #include <cstdio>
 #include <fstream>
+#include <iomanip>
+
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp> 
@@ -24,24 +26,24 @@ void criarObjetos() {
 	cout << "Criando objetos da cena" << endl;
 	
 	PontoDeLuz luz1;
-	luz1.posicao = vec3(8.0f, 50.0f, 10.0f);
+	luz1.posicao = vec3(8.0f, 40.0f, 30.0f);
 	luz1.estado = DESLIGADA;
 
 	PontoDeLuz luz2;
-	luz2.posicao = vec3(-8.0f, 50.0f, 10.0f);
+	luz2.posicao = vec3(-8.0f, 40.0f, 30.0f);
 	luz2.estado = LIGADA;	
 	
 	pontosDeLuz.push_back(luz1);
 	pontosDeLuz.push_back(luz2);
 
-	Esfera *esfera1 = new Esfera(3.0, vec3(0.0, 0.0, -20.0), vec3(0.8, 0.8, 0.8));//centro
+	Esfera *esfera1 = new Esfera(3.0, vec3(0.0, 0.0, -10.0), vec3(0.8, 0.8, 0.8));//centro
 	Esfera *esfera2 = new Esfera(3.0, vec3(10.0, 0.0,-20.0), vec3(0.0, 1.0, 0.0));//leste
 	Esfera *esfera3 = new Esfera(3.0, vec3(-10.0, 0.0, -20.0), vec3(0.0, 1.0, 1.0));//oeste
 	Esfera *esfera4 = new Esfera(3.0, vec3(0.0, 10.0, -20.0), vec3(1.0, 1.0, 0.0));//norte
-	Esfera *esfera5 = new Esfera(3.0, vec3(0.0, -10.0, -15.0), vec3(0.8, 0.8, 0.8));//sudoeste
+	Esfera *esfera5 = new Esfera(3.0, vec3(5.0, 0.0, 10.0), vec3(0.8, 0.8, 0.8));//sudoeste
 	
-	Esfera *esfera6 = new Esfera(3.0, vec3(0.0, -10.0, -20.0), vec3(1.0, 0.0, 0.0));//sul
-	
+	Esfera *esfera6 = new Esfera(3.0, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0));//sul	
+
 	Plano 	*plano1 = new Plano(vec3(0.0, -13.0, 0.0), vec3(0.0, 1.0, 0.0), 13.0);//chao
 	Plano 	*plano2 = new Plano(vec3(0.0, 0.0, -25.0), vec3(0.0, 0.0, 1.0), 25.0);//fundo
 	Plano 	*plano3 = new Plano(vec3(0.0, 13.0, 0.0), vec3(0.0, -1.0, 0.0), 13.0);//ceu
@@ -54,7 +56,6 @@ void criarObjetos() {
 	plano3->superficie.corRGB = vec3(0.8, 0.5, 0.2);//ceu
 	plano4->superficie.corRGB = vec3(1.0, 0.0, 0.0);//esq
 	plano5->superficie.corRGB = vec3(1.0, 1.0, 0.0);//dir
-	
 		
 	esfera1->superficie.tipoSuperficie = reflexiva;
 	esfera5->superficie.tipoSuperficie = refrataria;
@@ -62,14 +63,14 @@ void criarObjetos() {
 	//plano1->superficie.tipoSuperficie = solida;
 	
 	objetos.push_back(esfera1);
-	objetos.push_back(esfera2);
-	objetos.push_back(esfera3);
-	objetos.push_back(esfera4);
+//	objetos.push_back(esfera2);
+//	objetos.push_back(esfera3);
+//	objetos.push_back(esfera4);
 	objetos.push_back(esfera5);
 	objetos.push_back(esfera6);
 
 	objetos.push_back(plano1);
-	objetos.push_back(plano2);
+//	objetos.push_back(plano2);
 //	objetos.push_back(plano3);
 //	objetos.push_back(plano4);
 //	objetos.push_back(plano5);
@@ -90,48 +91,54 @@ void desenharPixels(GLint vbo) {
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
-void atualizaFPS() {
-
+float calcularFPS() {
+	//cout << "inicio " << inicioPrograma << endl; 
+	//cout << "fim " << fimPrograma << endl; 
+	//cout << "fps " << contFPS << endl; 
+	return (contFPS / (fimPrograma - inicioPrograma));
 }
 
-void rotaciona(unsigned moveu, mat4 &model) {
-	if (moveu != RT_STOP) {
-		switch (moveu) {
-			case RT_Y_HORARIO:		anguloY += PASSO_CAMERA;
-									model = rotate(model, anguloY, vec3(0.0f, 1.0f, 0.0f));
-									break;
-			case RT_Y_ANTI_HORARIO: anguloY -= PASSO_CAMERA;
-									model = rotate(model, anguloY, vec3(0.0f, 1.0f, 0.0f));
-									break;
-			case RT_X_HORARIO:		anguloX += PASSO_CAMERA;
-									model = rotate(model, anguloX, vec3(1.0f, 0.0f, 0.0f));
-									break;
-			case RT_X_ANTI_HORARIO: anguloX -= PASSO_CAMERA;
-									model = rotate(model, anguloX, vec3(1.0f, 0.0f, 0.0f));
-									break;
-						
-		}
-	}
+void exibirFPS() {
+	cout << fixed << setprecision(3) << "FPS calculado: " << calcularFPS() << endl;
 }
 
 void display(GLFWwindow* window) {
+	anguloY += PASSO_CAMERA;
+
 	mat4 model = mat4(1.0f);
 	model = translate(mat4(1.0f), vec3(0.0f, 0.0f, 1.0f));
-	//Rotacao da camera nos eixos
-	rotaciona(moveu, model);
-	//Inicializa as matrizes fixas
-    mat4 projection = frustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f);
+
+	//Inicializa a piramide de projecao e o viewport
+	mat4 projection = frustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f);
     vec4 viewport(0.0f, 0.0f, float(winHeight), float(winWidth));
 	vector<vec3> cores;
-	vec3 origemRaio = vec3(0.0f, 0.0f, 1.0f);
-
+	vec3 origemRaio = vec3(0.0f, 0.0f, 20.0f);	//posiciona o ponto da camera
+	/*	Rotacao eixo Y
+	| cos θ    0   sin θ| |x|   | x cos θ + z sin θ|   |x'|
+    |   0      1       0| |y| = |         y        | = |y'|
+    |−sin θ    0   cos θ| |z|   |−x sin θ + z cos θ|   |z'|
+	*/
+	//Rotaciona a camera em Y
+	vec3 origemRaioR = vec3(origemRaio.x * cos(anguloY) + origemRaio.z * sin(anguloY), 
+							origemRaio.y, 
+						    -origemRaio.x * sin(anguloY) + origemRaio.z * cos(anguloY));  	
+	/*
+	vec3 lookAt 	= vec3(0.0f, 0.0f, 0.0f); //ponto da camera
+	vec3 up			= vec3(0.0f, 1.0f, 0.0f); //up da camera
+	mat4 view  		= glm::lookAt(origemRaioR, lookAt, up); //matriz do view
+	mat4 viewRotated	= rotate(view, anguloY, vec3(0.0f, 1.0f, 0.0f));
+	*/
 	for (unsigned int y = 0; y < winHeight ; y++) {
 		for (unsigned int x = 0; x < winWidth; x++) {
 			vec3 posicaoTela = vec3(x, y, 0);
+			
 			vec3 posicaoMundo = glm::unProject(posicaoTela, model, projection, viewport);
-		
-			vec3 direcaoRaio = normalize(vec3(posicaoMundo.x, posicaoMundo.y, -1));
-			vec3 cor = tracarRaio(origemRaio, direcaoRaio, objetos, pontosDeLuz, 0);
+			vec3 direcaoRaio = normalize(vec3(posicaoMundo.x, posicaoMundo.y, -1) - vec3(0));
+			
+			vec3 direcaoRaioR = vec3(direcaoRaio.x * cos(anguloY) + direcaoRaio.z * sin(anguloY), 
+									direcaoRaio.y, 
+									-direcaoRaio.x * sin(anguloY) + direcaoRaio.z * cos(anguloY));
+			vec3 cor = tracarRaio(origemRaioR, direcaoRaioR, objetos, pontosDeLuz, 0);
 			cores.push_back(cor);
 		}
 	}
@@ -188,6 +195,8 @@ static void error_callback(int error, const char* description) {
 static void window_size_callback(GLFWwindow* window, int width, int height) {
     winWidth  = width;
 	winHeight = height; 
+	aspect = winWidth / winHeight;
+	
 	glViewport(0, 0, width, height);
 }
 
@@ -200,6 +209,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	if (action == GLFW_PRESS)
 		switch (key) {	
 			case GLFW_KEY_ESCAPE  	: 	glfwSetWindowShouldClose(window, true);
+										exibirFPS();
 										break;
 			case GLFW_KEY_LEFT		: 	moveu = RT_LEFT;
 										break;
@@ -288,9 +298,13 @@ static GLFWwindow* initGLFW(char* nameWin, int w, int h) {
 
 static void GLFW_MainLoop(GLFWwindow* window) {
 
-   while (!glfwWindowShouldClose(window)) {
-
-   		double now = glfwGetTime(); 
+	double lastFPS = 0.0, nowFPS;	
+	
+	while (!glfwWindowShouldClose(window)) {
+		double now = glfwGetTime();
+		//double inicioFPS = glfwGetTime();
+		
+		//double duracaoFPS = inicioFPS - lastFPS;
 		double ellapsed = now - last;
 
 		ObjetoImplicito* objetoSelecionado = NULL;
@@ -300,7 +314,8 @@ static void GLFW_MainLoop(GLFWwindow* window) {
 	
 
    		if (ellapsed > 1.0f / 30.0f) {//intervalo de atualizacao da tela
-			last = now;
+		//if (ellapsed > 1e-4) {//intervalo de atualizacao da tela
+			
 	        display(window);
 			glfwSwapBuffers(window);
 			if (moveu != RT_STOP && objetoSelecionado != NULL) {
@@ -310,12 +325,15 @@ static void GLFW_MainLoop(GLFWwindow* window) {
 	
 		}
 		
-		if (ellapsed > 1000) {
-
+		/*
+		if (duracaoFPS > 1 / 1000) {//calculo de fps
+			lastFPS = inicioFPS;			
+			cout << "FPS" << contFPS << endl;
+			contFPS++;
 		}
-
+		*/
         glfwPollEvents();
-    	}
+    }
 }
 
 /* ************************************************************************* */
@@ -334,9 +352,13 @@ int main(int argc, char *argv[]) {
 
 	criarObjetos();
 	
+	inicioPrograma = glfwGetTime();
+
 	GLFW_MainLoop(window);
 	
-    glfwDestroyWindow(window);
+	fimPrograma = glfwGetTime();
+	
+	glfwDestroyWindow(window);
     glfwTerminate();
 
     exit(EXIT_SUCCESS);

@@ -28,7 +28,7 @@
 using namespace std;
 using namespace glm;
 
-#define MAX_RECURSOES	5
+#define MAX_RECURSOES	3
 #define REFRACAO_VIDRO 1.5f //indice de refracao do vidro
 #define REFRACAO_AR 1.0f
 #define DESVIO 0.001f
@@ -84,7 +84,6 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
     if (objeto != NULL) {
         vertice = origem + (direcao * t);
         normal = objeto->calcularNormal(origem, direcao, t);
-        vec3 direcaoLuz = calcularDirecaoLuz(vertice, pontosDeLuz.at(0).posicao); 
         nivel++; //nivel de recursao
  
         //cout << "Objeto tocado" << endl;
@@ -105,10 +104,10 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
  
                    vec3 raioRefratado = calcularRaioRefratado(direcao, normal);
                    corRefratada = tracarRaio(vertice + (- 1.0f) * normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
-               } 
-               //a cor final sera uma composicao da cor original com cor refletida e refratada
-               cor *=  (corRefletida + corRefratada);  
-           
+               }
+                //a cor final sera uma composicao da cor original com cor refletida e refratada
+                cor *=  (corRefletida + corRefratada);  
+
             } else {
                 
                 cor *= calcularContribuicoesLuzes(pontosDeLuz, vertice, normal, direcao, objeto);
@@ -131,7 +130,7 @@ vec3 calcularDifusa(vec3 direcaoLuz, vec3 normal, vec3 difusa) {
 
 vec3 calcularEspecular(vec3 direcao, vec3 direcaoLuz, vec3 vertice, vec3 normal, vec3 especularRGB, unsigned expoente) {
     vec3 v = normalize(direcao - vertice);
-    vec3 r = normalize(reflect(-direcaoLuz, normal));
+    vec3 r = normalize(reflect(direcaoLuz, normal));
     float omega = std::max(dot(v, r), 0.0f);
     return especularRGB * (float)pow(omega, expoente);
 }
@@ -141,12 +140,26 @@ vec3 calcularRaioRefratado (vec3 direcao, vec3 normal) {
     //Normal > 0 = cos > 0  =entrou no objeto
     if (dot(direcao, normal) > 0) {
         normal = (-1.0f) * normal;
+        cout << "entrou no objeto" << endl;
         indice = REFRACAO_VIDRO / REFRACAO_AR;
     } else {
      //Normal < 0 = cos < 0 = saiu do objeto
+     cout << "saiu do objeto" << endl;
+     
         indice = REFRACAO_AR / REFRACAO_VIDRO;
     }     
     return normalize(refract(direcao, normal, indice));
+}
+
+float mix(const float &a, const float &b, const float &mix) {
+    return b * mix + a * (1 - mix);
+}
+
+float calcularFresnel(vec3 direcao, vec3 normal) {
+    vec3 direcaoInversa = -1.0f * direcao;
+    vec3 normalInversa = -1.0f * normal;
+    float reflexaoFresnel = dot(direcao, normal);
+    return mix(pow(1 - reflexaoFresnel, 3), 1, 0.1);
 }
 
 vec3 calcularDirecaoLuz(vec3 vertice, vec3 posicaoLuz) {

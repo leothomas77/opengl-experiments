@@ -19,32 +19,23 @@
 #define MAX(x,y) (y>x?y:x)
 #endif
 
-#define MAX_INTERSECOES 10
-
-#ifndef RT_WIDTH
-#define RT_WIDTH 100
-#endif
-
-#ifndef RT_HEIGHT
-#define RT_HEIGHT 100
-#endif
+#define RT_WIDTH 400
+#define RT_HEIGHT 400
 
 using namespace std;
 using namespace glm;
 
-GLuint 	axisVBO[3];
-
 GLuint 	vbo;
 
 //Movimento da camera
-vec3 deslocamento(0);
-#define PASSO_CAMERA 0.02f
+#define PASSO_CAMERA 0.3f
+
 
 float 	velocidade = 2.0f;
 unsigned moveu = RT_STOP;
 float 	anguloX = 0.0f, anguloY	= 0.0f, anguloZ	= 0.0f;
 //Movimento do objeto
-unsigned indiceObjeto = 0;
+unsigned indiceObjeto = 0; //objeto selecionado na cena
 
 double  last;
 double  ultima;
@@ -52,14 +43,10 @@ vector<ObjetoImplicito*> objetos;
 vector<PontoDeLuz> pontosDeLuz;
 unsigned estadoLuz = 2;//LUZ_12
 unsigned int winWidth 	= RT_WIDTH, winHeight 	= RT_HEIGHT;
+double aspect = RT_WIDTH / double(RT_HEIGHT);
 
-float 	angleX 	= 	0.0f,
-		angleY	= 	0.0f,
-		distanciaCamera = 5.0f;
 //C[alculo do FPS
-long lastFrame;
-long delta;
-unsigned fps;
-long lastFPS;
+double inicioPrograma = 0.0, fimPrograma = 0.0;
+unsigned contFPS = 0;
 
 #endif //__RTGLOBALS__	

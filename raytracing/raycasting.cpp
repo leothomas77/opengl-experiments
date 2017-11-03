@@ -101,7 +101,16 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
                vec3 corRefratada = vec3(0);
                
                if (objeto->superficie.tipoSuperficie == refrataria) {
- 
+                   float indice;
+                   float dotDirecaoNormal = dot(direcao, normal);
+                   float cosseno;
+                   if (dotDirecaoNormal < 0) {//caso1 raio transmitido
+                        vec3 raioRefratado = normalize(refract(direcao, normal, indice));
+                        corRefratada = tracarRaio(vertice + (- 1.0f) * normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
+                        cosseno = -1.0f * dotDirecaoNormal;
+                    } else {
+
+                   }
                    vec3 raioRefratado = calcularRaioRefratado(direcao, normal);
                    corRefratada = tracarRaio(vertice + (- 1.0f) * normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
                }
@@ -135,17 +144,27 @@ vec3 calcularEspecular(vec3 direcao, vec3 direcaoLuz, vec3 vertice, vec3 normal,
     return especularRGB * (float)pow(omega, expoente);
 }
 
+vec3 calcularRaioRefratado2 (vec3 direcao, vec3 normal) {
+    float indice;
+    float cosi;
+    float dotDirNormal = dot(direcao, normal);
+    if (dotDirNormal < 0) {//
+        indice = 1.0f;
+        normalize(refract(direcao, normal, indice));
+        cosi = (-1.0f) * dotDirNormal;
+    }
+}
+
 vec3 calcularRaioRefratado (vec3 direcao, vec3 normal) {
     float indice;
     //Normal > 0 = cos > 0  =entrou no objeto
     if (dot(direcao, normal) > 0) {
         normal = (-1.0f) * normal;
-        cout << "entrou no objeto" << endl;
+        //cout << "entrou no objeto" << endl;
         indice = REFRACAO_VIDRO / REFRACAO_AR;
     } else {
      //Normal < 0 = cos < 0 = saiu do objeto
-     cout << "saiu do objeto" << endl;
-     
+        //cout << "saiu do objeto" << endl;
         indice = REFRACAO_AR / REFRACAO_VIDRO;
     }     
     return normalize(refract(direcao, normal, indice));

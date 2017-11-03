@@ -352,12 +352,8 @@ int main(int argc, char *argv[]) {
 
 	criarObjetos();
 	
-	inicioPrograma = glfwGetTime();
-
 	GLFW_MainLoop(window);
-	
-	fimPrograma = glfwGetTime();
-	
+		
 	glfwDestroyWindow(window);
     glfwTerminate();
 

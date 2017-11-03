@@ -32,9 +32,10 @@
 - [x] revisao codigo
 - [x] calculo FPS
 - [ ] preparar apresentação e documentação para entrega
-### Entrega final 01/11/2017 no moodle
+### Entrega final 01/11/2017 no moodle (prorrogada para ajustes)
 - [x] rotação programática de câmera no eixo Y
 - [x] ajuste no phong (bug na inversão de sinal)
 - [ ] calcular fps
 - [ ] corrigir refração e reflexão total interna
+### Entrega final 08/11/2017 no moodle
 

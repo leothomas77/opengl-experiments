@@ -6,13 +6,13 @@
 - [x] definir a cena
 - [x] implementacao do algoritmo sem recursão
 - [x] renderizar esferas (imagem salva em arquivo)
-- [-] implementar shader (abortado)
+- [ ] implementar shader (abortado)
 - [x] desenhar cena na janela GLFW
 ### Marco II - esfera desenhada
 - [x] redefinir a cena I - ponto de vista, cores e dimensões, reposicionamentos
 - [x] renderizar plano
 - [x] implementar phong - objeto solido
-- [-] renderizar poligon - (abortado)
+- [ ] renderizar poligon - (abortado)
 ### Marco III - especular + difusa implementada
 - [x] revisar phong - objeto solido
 - [x] implementar recursao
@@ -31,10 +31,10 @@
 ### Marco V - movimento da câmera implementado
 - [x] revisao codigo
 - [x] calculo FPS
-- [] preparar apresentação e documentação para entrega
+- [ ] preparar apresentação e documentação para entrega
 ### Entrega final 01/11/2017 no moodle
--[x] rotação programática de câmera no eixo Y
--[x] ajuste no phong (bug na inversão de sinal)
--[] calcular fps
--[] corrigir refração e reflexão total interna
+- [x] rotação programática de câmera no eixo Y
+- [x] ajuste no phong (bug na inversão de sinal)
+- [ ] calcular fps
+- [ ] corrigir refração e reflexão total interna
 

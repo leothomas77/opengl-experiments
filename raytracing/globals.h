@@ -18,7 +18,7 @@
 #ifndef MAX
 #define MAX(x,y) (y>x?y:x)
 #endif
-
+#define RT_APP "Raycasting v1.0"
 #define RT_WIDTH 400
 #define RT_HEIGHT 400
 
@@ -48,6 +48,7 @@ double aspect = RT_WIDTH / double(RT_HEIGHT);
 
 //C[alculo do FPS
 double inicioPrograma = 0.0, fimPrograma = 0.0;
+unsigned contSegundos = 0;
 unsigned contFPS = 0;
 
 #endif //__RTGLOBALS__	

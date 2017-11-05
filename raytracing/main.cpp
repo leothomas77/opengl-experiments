@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <fstream>
 #include <iomanip>
+#include <sstream>
 
 
 #include <glm/vec3.hpp>
@@ -59,11 +60,8 @@ void criarObjetos() {
 		
 	esfera1->superficie.tipoSuperficie = reflexiva;
 	esfera5->superficie.tipoSuperficie = refrataria;
-//	esfera6->superficie.tipoSuperficie = refrataria;
 	
-	//plano1->superficie.tipoSuperficie = solida;
-	
-	objetos.push_back(esfera1);
+//	objetos.push_back(esfera1);
 //	objetos.push_back(esfera2);
 //	objetos.push_back(esfera3);
 //	objetos.push_back(esfera4);
@@ -96,10 +94,12 @@ float calcularFPS() {
 	//cout << "inicio " << inicioPrograma << endl; 
 	//cout << "fim " << fimPrograma << endl; 
 	//cout << "fps " << contFPS << endl; 
+
 	return (contFPS / (fimPrograma - inicioPrograma));
 }
 
 void exibirFPS() {
+	cout << "Duracao do programa em segundos: " << contSegundos << endl;
 	cout << fixed << setprecision(3) << "FPS calculado: " << calcularFPS() << endl;
 }
 
@@ -142,7 +142,7 @@ void display(GLFWwindow* window) {
 			//vec3 posicaoMundo = vec3(0.0f, 0.0f, 0.0f);
 			vec3 direcaoRaio = normalize(vec3(posicaoMundo.x, posicaoMundo.y, -1) - vec3(0));
 			
-			vec3 direcaoRaioR = rotacaoY(direcaoRaio, anguloY);//rotaciona a direcao do raio
+			vec3 direcaoRaioR = rotacaoY(direcaoRaio, anguloY); //rotaciona a direcao do raio
 
 			vec3 cor = tracarRaio(origemRaioR, direcaoRaioR, objetos, pontosDeLuz, 0);
 			cores.push_back(cor);
@@ -153,9 +153,9 @@ void display(GLFWwindow* window) {
 	alocarBuffer(cores);
 	desenharPixels(vbo);
 	cores.clear();
-	if (DEBUG) {
-		glfwSetWindowShouldClose(window, true); //habilitar caso queira forcar o encerramento do programa
-	} 
+	// if (DEBUG) {
+	// 	glfwSetWindowShouldClose(window, true); //habilitar caso queira forcar o encerramento do programa
+	// } 
 	
 }
 
@@ -305,15 +305,12 @@ static GLFWwindow* initGLFW(char* nameWin, int w, int h) {
 /* ************************************************************************* */
 
 static void GLFW_MainLoop(GLFWwindow* window) {
-
-	double lastFPS = 0.0, nowFPS;	
-	
+	double lastFPS = 0.0, intervaloFPS = 0.0;
 	while (!glfwWindowShouldClose(window)) {
 		double now = glfwGetTime();
-		//double inicioFPS = glfwGetTime();
 		
-		//double duracaoFPS = inicioFPS - lastFPS;
 		double ellapsed = now - last;
+		double intervaloFPS = now - lastFPS;
 
 		ObjetoImplicito* objetoSelecionado = NULL;
 		if (indiceObjeto <= objetos.size()) {
@@ -321,25 +318,31 @@ static void GLFW_MainLoop(GLFWwindow* window) {
 		}
 	
 
-   		if (ellapsed > 1.0f / 30.0f) {//intervalo de atualizacao da tela
+   		if (ellapsed > 1.0f / 60.0f) {//intervalo de atualizacao da tela
 		//if (ellapsed > 1e-4) {//intervalo de atualizacao da tela
+			last = now;
 			
-	        display(window);
+			display(window);
 			glfwSwapBuffers(window);
 			if (moveu != RT_STOP && objetoSelecionado != NULL) {
 				objetoSelecionado->mover(moveu, ellapsed);
 			}
 			moveu = RT_STOP;
-	
-		}
-		
-		/*
-		if (duracaoFPS > 1 / 1000) {//calculo de fps
-			lastFPS = inicioFPS;			
-			cout << "FPS" << contFPS << endl;
 			contFPS++;
+			
 		}
-		*/
+
+		if (intervaloFPS > 1.0f) {// Passou 1 segundo
+			lastFPS = now;
+			char titulo [50];
+			titulo [49] = '\0';
+			snprintf (titulo, 49, "%s - [FPS: %3.0u]", RT_APP, contFPS );
+
+			glfwSetWindowTitle(window, titulo);
+				  
+			contFPS = 0;
+			intervaloFPS = 0;
+		}
         glfwPollEvents();
     }
 }

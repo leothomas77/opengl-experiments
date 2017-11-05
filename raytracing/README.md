@@ -35,7 +35,7 @@
 ### Entrega final 01/11/2017 no moodle (prorrogada para ajustes)
 - [x] rotação programática de câmera no eixo Y
 - [x] ajuste no phong (bug na inversão de sinal)
-- [ ] calcular fps
-- [ ] corrigir refração e reflexão total interna
+- [x] calcular fps
+- [x] corrigir refração e reflexão total interna
 ### Entrega final 08/11/2017 no moodle
 

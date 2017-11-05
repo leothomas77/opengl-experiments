@@ -48,9 +48,11 @@ vec3 calcularDirecaoLuz(vec3 vertice, vec3 posicaoLuz);
 unsigned obterEstadoLuz(vector<PontoDeLuz> pontosDeLuz);
 float mix(const float &a, const float &b, const float &mix);
 float interceptarObjetos(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objeto, float &t);
+vec3 calcularRaioRefratado2(vec3 direcao, vec3 normal, float indice);
 vec3 calcularRaioRefratado (vec3 direcao, vec3 normal);
+	
 vec3 calcularContribuicoesLuzes(vector<PontoDeLuz> pontosDeLuz, vec3 vertice, vec3 normal, vec3 direcao, ObjetoImplicito* objeto);
-float calcularFresnel(vec3 direcao, vec3 normal);
+float calcularFresnel(vec3 direcao, vec3 normal, float n1, float n2);
 	
 	
 

@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cmath>
+#include <iomanip>
 
 #include <fstream>
 #include <vector>
@@ -28,7 +29,7 @@
 using namespace std;
 using namespace glm;
 
-#define MAX_RECURSOES	3
+#define MAX_RECURSOES	6
 #define REFRACAO_VIDRO 1.5f //indice de refracao do vidro
 #define REFRACAO_AR 1.0f
 #define DESVIO 0.001f
@@ -63,8 +64,10 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
     vec3 cor = BACKGROUND; 
     vec3 normal = vec3(0); 
     vec3 vertice = vec3(0);
-
+    //cout << "Recursao nivel R" << nivel << endl;
     for(unsigned int i = 0; i < objetos.size(); i++) {
+        //cout << "Intersecao objeto " << i << endl;
+        
         float t1 = INFINITO;
         float t0 = INFINITO; 
         if (objetos.at(i)->intersecao(origem, direcao, t0, t1)) {
@@ -78,7 +81,6 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
         } 
     }
 
-    //t = interceptarObjetos(origem, direcao, objetos, objeto);  
     //cout << "Objeto " << objeto << endl;      
 
     if (objeto != NULL) {
@@ -92,54 +94,40 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
         if (nivel < MAX_RECURSOES) {
             cor = objeto->superficie.corRGB; //cor de partida (nunca pode ser zero)
             
-          
-            if ((objeto->superficie.tipoSuperficie == reflexiva || 
-                objeto->superficie.tipoSuperficie == refrataria)) {
-
-               vec3 raioRefletido = normalize(reflect(direcao, normal));
-               vec3 corRefletida = tracarRaio(vertice + normal * DESVIO, raioRefletido, objetos, pontosDeLuz, nivel);
-               vec3 corRefratada = vec3(0);
-               float coseno;
-               
-               if (objeto->superficie.tipoSuperficie == refrataria) {
-                   float indice;
-                   float dotDirecaoNormal = dot(direcao, normal);
-                   vec3 raioRefratado;
-                   if (dotDirecaoNormal < 0) {//caso1 raio transmitido
-                        raioRefratado = normalize(refract(direcao, normal, 1.0f));
-                        corRefratada = tracarRaio(vertice + (- 1.0f) * normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
-                        coseno = -1.0f * dotDirecaoNormal;
-                    } else {
-                        raioRefratado = refract(direcao, (-1.0f)* normal, 1.0f/1.5f);
-                        if (length(raioRefratado) > 0.0f) {
-                            corRefratada = tracarRaio(vertice + (- 1.0f) * normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
-                            coseno = dotDirecaoNormal;
-                        } else {
-                            corRefratada = vec3(0);
-                        }                        
-                   }
-                   //vec3 raioRefratado = calcularRaioRefratado(direcao, normal);
-                   //corRefratada = tracarRaio(vertice + (- 1.0f) * normal * DESVIO, raioRefratado, objetos, pontosDeLuz, nivel);
-               }
-                //a cor final sera uma composicao da cor original com cor refletida e refratada
-                //cor *=  (corRefletida + corRefratada); 
-                //fresnel
-                float r0 = pow((1.5f - 1.0f), 2) / pow((1.5f + 1.0f), 2);
-                float r = r0 + (1.0f - r0) * pow((1.0f - coseno), 5);
-                cor = r * corRefletida + (1.0f - r) * corRefratada; 
-
-            } else {
-                
-                cor *= calcularContribuicoesLuzes(pontosDeLuz, vertice, normal, direcao, objeto);
-            
-            }
-
             float corSombreada = calcularSombras(vertice, normal, pontosDeLuz, objetos, objeto);
             cor -= corSombreada; //cor nao pode ser negativa
 
+            if (objeto->superficie.tipoSuperficie == reflexiva) { 
+                //cout << "refl" << endl;
+                vec3 raioRefletido = normalize(reflect(direcao, normal));
+                vec3 corRefletida = tracarRaio(vertice + normal * DESVIO, raioRefletido, objetos, pontosDeLuz, nivel);
+                //cout << "Retornou corRefletida " << endl;
+                cor *= corRefletida;
+            } else if (objeto->superficie.tipoSuperficie == refrataria) {
+                //cout << "refr" << endl;
+                vec3 corRefratada = vec3(0.0f, 0.0f, 0.0f);
+
+                vec3 desvio = normal * DESVIO;
+                vec3 raioRefratado = calcularRaioRefratado2(direcao, normal, 2.4);
+                vec3 verticeRefracao;
+                if (dot(direcao, normal) < 0) {
+                    verticeRefracao =  vertice - desvio;
+                } else {
+                    verticeRefracao = vertice + desvio;
+                }
+                corRefratada = tracarRaio(verticeRefracao , normalize(raioRefratado), objetos, pontosDeLuz, nivel);
+                
+               cor =  objeto->superficie.corRGB * corRefratada;
+            } else {
+                //cout << "phong" << endl;
+                cor *= calcularContribuicoesLuzes(pontosDeLuz, vertice, normal, direcao, objeto);
+                //cout << "Retornou corSolida" << endl;
+            }
+
+ 
         }
     }   
-
+    //cout << "Retorno cor (r: "<< cor.x*255 <<" g:"<< cor.y*255 << " b: "<< cor.z*255 << ")"<< endl;
     return cor;
 }
 
@@ -155,15 +143,57 @@ vec3 calcularEspecular(vec3 direcao, vec3 direcaoLuz, vec3 vertice, vec3 normal,
     return especularRGB * (float)pow(omega, expoente);
 }
 
-vec3 calcularRaioRefratado2 (vec3 direcao, vec3 normal) {
-    float indice;
-    float cosi;
-    float dotDirNormal = dot(direcao, normal);
-    if (dotDirNormal < 0) {//
-        indice = 1.0f;
-        normalize(refract(direcao, normal, indice));
-        cosi = (-1.0f) * dotDirNormal;
+float clamp(float limiteInferior, float limiteSuperior, float valor) { 
+    return std::max(limiteInferior, std::min(limiteSuperior, valor)); 
+} 
+//Calcular a parte do raio incidente que sera refratado
+//Pela lei da conservacao, a parte restante sera refletida
+float calcularFresnel(vec3 direcao, vec3 normal, float n1, float n2) {
+    float retorno;
+    float cosi = clamp(-1, 1, -1.0f * dot(direcao, normal)); //cosi = cos raio incidente
+    //if (cosi > 0.0f) {//entrou no objeto
+      //  std::swap(n1, n2);//inverte os indices
+    //}
+    float n = n1 / n2;
+    //aplica Snell
+    float sint2 = n * n * (1.0f - cosi * cosi);
+    if (sint2 > 1.0f) {//reflexao total interna
+        cout << "reflexao total interna" << endl;
+        retorno = 1.0f;
+    } else {
+        float cost = sqrt(1.0f - sint2);
+        float r0rth = (n1 * cosi - n2 * cost) / (n1 * cosi + n2 * cost);
+        float rPar = (n2 * cosi - n1 * cost) / (n2 * cosi + n1 * cost);
+        retorno = (r0rth * r0rth + rPar * rPar) / 2.0f;
     }
+    return retorno;
+}
+
+vec3 calcularRaioRefratado2(vec3 direcao, vec3 normal, float indice) { 
+    float cosi = dot(direcao, normal); 
+    float etai, etat; 
+    //cout << "Raio refratado cosi=" << cosi << endl;
+    if (cosi > 0.0f) { // raio dentro > fora
+        //cout << "Raio refratado saiu" << endl;
+        etai = indice;
+        etat = 1;
+        normal = -1.0f * normal; 
+    } else { // raio raio fora > dentro
+        //cout << "Raio refratado entrou" << endl;
+        etai = 1;
+        etat = indice;
+        cosi = -cosi; 
+    } 
+    float eta = etai / etat; 
+    float k = 1 - eta * eta * (1 - cosi * cosi); 
+    if (k < 0) {
+        //cout << "TIR" << endl;
+        return vec3(0);
+    } else {
+        //cout << "K = " << k << endl;
+        return eta * direcao + (eta * cosi - sqrtf(k)) * normal;
+    }
+
 }
 
 vec3 calcularRaioRefratado (vec3 direcao, vec3 normal) {
@@ -171,11 +201,9 @@ vec3 calcularRaioRefratado (vec3 direcao, vec3 normal) {
     //Normal > 0 = cos > 0  =entrou no objeto
     if (dot(direcao, normal) > 0) {
         normal = (-1.0f) * normal;
-        //cout << "entrou no objeto" << endl;
         indice = REFRACAO_VIDRO / REFRACAO_AR;
     } else {
      //Normal < 0 = cos < 0 = saiu do objeto
-        //cout << "saiu do objeto" << endl;
         indice = REFRACAO_AR / REFRACAO_VIDRO;
     }     
     return normalize(refract(direcao, normal, indice));

@@ -59,7 +59,8 @@ void criarObjetos() {
 		
 	esfera1->superficie.tipoSuperficie = reflexiva;
 	esfera5->superficie.tipoSuperficie = refrataria;
-
+//	esfera6->superficie.tipoSuperficie = refrataria;
+	
 	//plano1->superficie.tipoSuperficie = solida;
 	
 	objetos.push_back(esfera1);
@@ -102,6 +103,17 @@ void exibirFPS() {
 	cout << fixed << setprecision(3) << "FPS calculado: " << calcularFPS() << endl;
 }
 
+/*	Rotacao eixo Y
+| cos θ    0   sin θ| |x|   | x cos θ + z sin θ|   |x'|
+|   0      1       0| |y| = |         y        | = |y'|
+|−sin θ    0   cos θ| |z|   |−x sin θ + z cos θ|   |z'|
+*/
+vec3 rotacaoY(vec3 ponto, float anguloY) {
+	return vec3(ponto.x * cos(anguloY) + ponto.z * sin(anguloY), 
+				ponto.y, 
+	 			-ponto.x * sin(anguloY) + ponto.z * cos(anguloY));;		
+}
+
 void display(GLFWwindow* window) {
 	anguloY += PASSO_CAMERA;
 
@@ -113,15 +125,8 @@ void display(GLFWwindow* window) {
     vec4 viewport(0.0f, 0.0f, float(winHeight), float(winWidth));
 	vector<vec3> cores;
 	vec3 origemRaio = vec3(0.0f, 0.0f, 20.0f);	//posiciona o ponto da camera
-	/*	Rotacao eixo Y
-	| cos θ    0   sin θ| |x|   | x cos θ + z sin θ|   |x'|
-    |   0      1       0| |y| = |         y        | = |y'|
-    |−sin θ    0   cos θ| |z|   |−x sin θ + z cos θ|   |z'|
-	*/
 	//Rotaciona a camera em Y
-	vec3 origemRaioR = vec3(origemRaio.x * cos(anguloY) + origemRaio.z * sin(anguloY), 
-							origemRaio.y, 
-						    -origemRaio.x * sin(anguloY) + origemRaio.z * cos(anguloY));  	
+	vec3 origemRaioR = rotacaoY(origemRaio, anguloY);
 	/*
 	vec3 lookAt 	= vec3(0.0f, 0.0f, 0.0f); //ponto da camera
 	vec3 up			= vec3(0.0f, 1.0f, 0.0f); //up da camera
@@ -131,23 +136,26 @@ void display(GLFWwindow* window) {
 	for (unsigned int y = 0; y < winHeight ; y++) {
 		for (unsigned int x = 0; x < winWidth; x++) {
 			vec3 posicaoTela = vec3(x, y, 0);
+			//vec3 posicaoTela = vec3(0.0, 0.5, 0);
 			
 			vec3 posicaoMundo = glm::unProject(posicaoTela, model, projection, viewport);
+			//vec3 posicaoMundo = vec3(0.0f, 0.0f, 0.0f);
 			vec3 direcaoRaio = normalize(vec3(posicaoMundo.x, posicaoMundo.y, -1) - vec3(0));
 			
-			vec3 direcaoRaioR = vec3(direcaoRaio.x * cos(anguloY) + direcaoRaio.z * sin(anguloY), 
-									direcaoRaio.y, 
-									-direcaoRaio.x * sin(anguloY) + direcaoRaio.z * cos(anguloY));
+			vec3 direcaoRaioR = rotacaoY(direcaoRaio, anguloY);//rotaciona a direcao do raio
+
 			vec3 cor = tracarRaio(origemRaioR, direcaoRaioR, objetos, pontosDeLuz, 0);
 			cores.push_back(cor);
 		}
 	}
 
-	//glfwSetWindowShouldClose(window, true); //habilitar caso queira forcar o encerramento do programa
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	alocarBuffer(cores);
 	desenharPixels(vbo);
 	cores.clear();
+	if (DEBUG) {
+		glfwSetWindowShouldClose(window, true); //habilitar caso queira forcar o encerramento do programa
+	} 
 	
 }
 

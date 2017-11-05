@@ -30,6 +30,7 @@ GLuint 	vbo;
 //Movimento da camera
 #define PASSO_CAMERA 0.3f
 
+float DEBUG = false;
 
 float 	velocidade = 2.0f;
 unsigned moveu = RT_STOP;

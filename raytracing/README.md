@@ -31,7 +31,7 @@ Para MacOS
 ```
 ./makemac.sh
 ```
-##Utilizando o programa
+## Utilizando o programa
 Para executar o programa
 ```
 ./main

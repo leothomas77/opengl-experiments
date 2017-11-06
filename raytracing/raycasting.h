@@ -46,7 +46,7 @@ void mudarEstadoLuz(unsigned &estado, vector<PontoDeLuz> &pontosDeLuz);
 vec3 calcularDirecaoLuz(vec3 vertice, vec3 posicaoLuz);
 unsigned obterEstadoLuz(vector<PontoDeLuz> pontosDeLuz);
 float interceptarObjetos(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objeto, float &t);
-vec3 calcularRaioRefratado(vec3 direcao, vec3 normal, float indice);
-vec3 calcularContribuicoesLuzes(vector<PontoDeLuz> pontosDeLuz, vec3 vertice, vec3 normal, vec3 direcao, ObjetoImplicito* objeto);
+vec3 calcularRaioRefratado(vec3 direcao, vec3 normal, float n1, float n2, float cosi);
+	vec3 calcularContribuicoesLuzes(vector<PontoDeLuz> pontosDeLuz, vec3 vertice, vec3 normal, vec3 direcao, ObjetoImplicito* objeto);
 	
 #endif //__RAYCASTING__	

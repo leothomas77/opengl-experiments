@@ -34,12 +34,13 @@ enum TipoSuperficie {
 
 struct PontoDeLuz {
     vec3 posicao;
+    vec3 corRGB;
     bool estado;
 };
 
 struct Superficie {
-    vec3 corRGB; 
-    vec3 ambienteRGB = vec3(0.18, 0.18, 0.18);
+//    vec3 corRGB; 
+    vec3 ambienteRGB = vec3(0.1, 0.1, 0.1);
     vec3 especularRGB = vec3(1.0, 1.0, 1.0);
     vec3 difusaRGB = vec3(0.8, 0.8, 0.8);
     unsigned expoente = 38;
@@ -58,10 +59,9 @@ struct IntersecaoObjeto {
 
 class ObjetoImplicito { 
  public: 
-    bool pintouSombra = false;
     Superficie superficie;  
     ObjetoImplicito(){
-        superficie.corRGB = vec3(0,0,0);
+        //superficie.corRGB = vec3(0,0,0);
     };
     void setSuperficie(vec3 difusa, vec3 especular) {
         this->superficie.especularRGB = especular;
@@ -134,17 +134,6 @@ public:
         }
         return false;
     
-     /*   float denominador= dot(this->normal, direcao);
-        if (abs(denominador) > 0.0001f) {
-            float t = dot(this->p0 - origem, this->normal) / denominador;
-            if (t >= 0.0001f) {
-                t0 = t;
-                t1 = t;
-                return true; 
-            }
-        }
-        return false; 
-     */   
     }
 
     vec3 calcularNormal(vec3 origem, vec3 direcao, float tIntersecao) {
@@ -164,7 +153,7 @@ public:
     Esfera(float raio, vec3 centro, vec3 corRGB) {
         this->raio = raio;
         this->centro = centro;
-        this->superficie.corRGB = corRGB;
+        this->superficie.difusaRGB = corRGB;
     }  
     ~Esfera() {}
     

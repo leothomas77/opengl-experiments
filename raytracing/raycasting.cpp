@@ -92,38 +92,39 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
         //cout << "Objeto espelhamento" << objeto->superficie.espelhamento << endl;
         //cout << "Recursoes" << objeto->superficie.espelhamento << endl;
         if (nivel < MAX_RECURSOES) {
-            cor = objeto->superficie.corRGB; //cor de partida (nunca pode ser zero)
+            cor = objeto->superficie.difusaRGB; //cor de partida (nunca pode ser zero)
             
             bool temSombra = calcularSombras(vertice, normal, pontosDeLuz, objetos, objeto);
             if (temSombra) {
 
                 cor *= SOMBREAMENTO; //cor nao pode ser negativa
                 
-            }
-            if (objeto->superficie.tipoSuperficie == reflexiva) { 
+            } else if (objeto->superficie.tipoSuperficie == reflexiva) { 
                 //cout << "refl" << endl;
                 vec3 raioRefletido = normalize(reflect(direcao, normal));
                 vec3 corRefletida = tracarRaio(vertice + normal * DESVIO, raioRefletido, objetos, pontosDeLuz, nivel);
                 //cout << "Retornou corRefletida " << endl;
-                cor *= corRefletida;
+                cor = corRefletida;
             } else if (objeto->superficie.tipoSuperficie == refrataria) {
                 //cout << "refr" << endl;
                 vec3 corRefratada = vec3(0.0f, 0.0f, 0.0f);
 
                 vec3 desvio = normal * DESVIO;
-                vec3 raioRefratado = calcularRaioRefratado(direcao, normal, REFRACAO_VIDRO);
-                vec3 verticeRefracao;
-                if (dot(direcao, normal) < 0) {
+                vec3 verticeRefracao, raioRefratado;
+                float cosi = dot(direcao, normal);
+                if (cosi < 0) {
+                    raioRefratado = calcularRaioRefratado(direcao, normal, REFRACAO_AR, REFRACAO_VIDRO, cosi);
                     verticeRefracao =  vertice - desvio;
                 } else {
+                    raioRefratado = calcularRaioRefratado(direcao, normal, REFRACAO_AR, REFRACAO_VIDRO, cosi);
                     verticeRefracao = vertice + desvio;
                 }
                 corRefratada = tracarRaio(verticeRefracao , normalize(raioRefratado), objetos, pontosDeLuz, nivel);
                 
-                cor =  objeto->superficie.corRGB * corRefratada;
+                cor =  corRefratada;
             } else {
                 //cout << "phong" << endl;
-                cor *= calcularContribuicoesLuzes(pontosDeLuz, vertice, normal, direcao, objeto);
+                cor = calcularContribuicoesLuzes(pontosDeLuz, vertice, normal, direcao, objeto);
                 //cout << "Retornou corSolida" << endl;
             }
 
@@ -134,9 +135,9 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
     return cor;
 }
 
-vec3 calcularDifusa(vec3 direcaoLuz, vec3 normal, vec3 difusa) {
+vec3 calcularDifusa(vec3 direcaoLuz, vec3 normal, vec3 difusaRGB) {
     float teta = std::max(dot(direcaoLuz, normal), 0.0f);
-    return difusa * teta;    
+    return difusaRGB * teta;    
 }
 
 vec3 calcularEspecular(vec3 direcao, vec3 direcaoLuz, vec3 vertice, vec3 normal, vec3 especularRGB, unsigned expoente) {
@@ -146,19 +147,18 @@ vec3 calcularEspecular(vec3 direcao, vec3 direcaoLuz, vec3 vertice, vec3 normal,
     return especularRGB * (float)pow(omega, expoente);
 }
 
-vec3 calcularRaioRefratado(vec3 direcao, vec3 normal, float indice) { 
-    float cosi = dot(direcao, normal); 
+vec3 calcularRaioRefratado(vec3 direcao, vec3 normal, float n1, float n2, float cosi) { 
     float etai, etat; 
     //cout << "Raio refratado cosi=" << cosi << endl;
-    if (cosi > 0.0f) { // raio dentro > fora
+    if (cosi > 0.0f) { // raio dentro -> fora
         //cout << "Raio refratado saiu" << endl;
-        etai = indice;
-        etat = 1;
+        etai = n2;
+        etat = n1;
         normal = -1.0f * normal; 
-    } else { // raio raio fora > dentro
+    } else { // raio raio fora -> dentro
         //cout << "Raio refratado entrou" << endl;
-        etai = 1;
-        etat = indice;
+        etai = n1;
+        etat = n2;
         cosi = -cosi; 
     } 
     float eta = etai / etat; 
@@ -177,11 +177,11 @@ vec3 calcularDirecaoLuz(vec3 vertice, vec3 posicaoLuz) {
 }
 
 vec3 calcularContribuicoesLuzes(vector<PontoDeLuz> pontosDeLuz, vec3 vertice, vec3 normal, vec3 direcao, ObjetoImplicito* objeto) {
+    vec3 ambiente = objeto->superficie.ambienteRGB;
     vec3 especular = objeto->superficie.especularRGB;
     vec3 difusa = objeto->superficie.difusaRGB;
-    float atenuacao = 0.68f;
     unsigned expoente = objeto->superficie.expoente;
-    float r = 0.0f, g = 0.0f, b = 0.0f;
+    float r = ambiente.r, g = ambiente.g, b = ambiente.b;
 
     //calcula a contribuicao de cada luz na cor
     unsigned luzesLigadas = 0;
@@ -190,18 +190,19 @@ vec3 calcularContribuicoesLuzes(vector<PontoDeLuz> pontosDeLuz, vec3 vertice, ve
         if (pontosDeLuz.at(k).estado == LIGADA) {
             luzesLigadas++;
             vec3 direcaoLuz = normalize(pontosDeLuz.at(k).posicao - vertice);
+            float decaimentoLuz = 1 / length(direcaoLuz);
             vec3 difusaEspecular = 
                 calcularDifusa(direcaoLuz, normal, difusa) +
-                calcularEspecular(direcao, pontosDeLuz.at(k).posicao, vertice, normal, especular, expoente);
-            r += difusaEspecular.r;
-            g += difusaEspecular.g;
-            b += difusaEspecular.b;
+                calcularEspecular(direcao, direcaoLuz, vertice, normal, especular, expoente);
+            r += decaimentoLuz * difusaEspecular.r;
+            g += decaimentoLuz * difusaEspecular.g;
+            b += decaimentoLuz * difusaEspecular.b;
 
         }
     }
     //cout << "luzes ligadas:" << luzesLigadas << endl;
     luzesLigadas == 0 ? luzesLigadas = 1 : luzesLigadas = luzesLigadas; //evita divisao por zero
-    return vec3(r / luzesLigadas, g / luzesLigadas, b / luzesLigadas);
+    return vec3(r / luzesLigadas, g / luzesLigadas, b / luzesLigadas );
 }
 
 /*

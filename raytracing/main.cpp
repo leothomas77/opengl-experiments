@@ -28,10 +28,12 @@ void criarObjetos() {
 	
 	PontoDeLuz luz1;
 	luz1.posicao = vec3(8.0f, 40.0f, 30.0f);
+	luz1.corRGB = vec3(1.0f, 1.0f, 1.0f);
 	luz1.estado = DESLIGADA;
 
 	PontoDeLuz luz2;
 	luz2.posicao = vec3(-8.0f, 40.0f, 30.0f);
+	luz2.corRGB = vec3(1.0f, 1.0f, 1.0f);
 	luz2.estado = LIGADA;	
 	
 	pontosDeLuz.push_back(luz1);
@@ -41,39 +43,25 @@ void criarObjetos() {
 	Esfera *esfera2 = new Esfera(3.0, vec3(10.0, 0.0,-20.0), vec3(0.0, 1.0, 0.0));//leste
 	Esfera *esfera3 = new Esfera(3.0, vec3(-10.0, 0.0, -20.0), vec3(0.0, 1.0, 1.0));//oeste
 	Esfera *esfera4 = new Esfera(3.0, vec3(0.0, 10.0, -20.0), vec3(1.0, 1.0, 0.0));//norte
-	Esfera *esfera5 = new Esfera(3.0, vec3(5.0, 0.0, 10.0), vec3(0.8, 0.8, 0.8));//sudoeste
-	
+	Esfera *esfera5 = new Esfera(3.0, vec3(5.0, 0.0, 10.0), vec3(0.8, 0.8, 0.8));//sudoeste	
 	Esfera *esfera6 = new Esfera(3.0, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0));//sul	
 
 	Plano 	*plano1 = new Plano(vec3(0.0, -13.0, 0.0), vec3(0.0, 1.0, 0.0), 13.0);//chao
-	Plano 	*plano2 = new Plano(vec3(0.0, 0.0, -25.0), vec3(0.0, 0.0, 1.0), 25.0);//fundo
-	Plano 	*plano3 = new Plano(vec3(0.0, 13.0, 0.0), vec3(0.0, -1.0, 0.0), 13.0);//ceu
-	Plano 	*plano4 = new Plano(vec3(-13.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), 13.0);//esq
-	Plano 	*plano5 = new Plano(vec3(13.0, 0.0, 0.0), vec3(-1.0, 0.0, 0.0), 13.0);//dir
 	
-
-	plano1->superficie.corRGB = vec3(1.0, 1.0, 1.0);//chao
-	plano2->superficie.corRGB = vec3(1.0, 1.0, 1.0);//fundo
-	plano3->superficie.corRGB = vec3(0.8, 0.5, 0.2);//ceu
-	plano4->superficie.corRGB = vec3(1.0, 0.0, 0.0);//esq
-	plano5->superficie.corRGB = vec3(1.0, 1.0, 0.0);//dir
+	plano1->superficie.difusaRGB = vec3(1.0, 1.0, 1.0);//chao
 		
 	esfera1->superficie.tipoSuperficie = reflexiva;
 	esfera5->superficie.tipoSuperficie = refrataria;
 	
-//	objetos.push_back(esfera1);
-//	objetos.push_back(esfera2);
-//	objetos.push_back(esfera3);
-//	objetos.push_back(esfera4);
+	objetos.push_back(esfera1);
+	objetos.push_back(esfera2);
+	objetos.push_back(esfera3);
+	objetos.push_back(esfera4);
 	objetos.push_back(esfera5);
 	objetos.push_back(esfera6);
 
 	objetos.push_back(plano1);
-//	objetos.push_back(plano2);
-//	objetos.push_back(plano3);
-//	objetos.push_back(plano4);
-//	objetos.push_back(plano5);
-
+	
 }
 
 void alocarBuffer(vector<vec3> pixels) {
@@ -90,17 +78,19 @@ void desenharPixels(GLint vbo) {
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
-float calcularFPS() {
-	//cout << "inicio " << inicioPrograma << endl; 
-	//cout << "fim " << fimPrograma << endl; 
-	//cout << "fps " << contFPS << endl; 
 
-	return (contFPS / (fimPrograma - inicioPrograma));
-}
+void exibirFPS(double now, double &lastFPS, double &intervaloFPS, unsigned &contFPS, GLFWwindow* window) {
+	if (intervaloFPS > 1.0f) {// Passou 1 segundo
+		lastFPS = now;
+		char titulo [50];
+		titulo [49] = '\0';
+		snprintf (titulo, 49, "%s - [FPS: %3.0u]", RT_APP, contFPS );
 
-void exibirFPS() {
-	cout << "Duracao do programa em segundos: " << contSegundos << endl;
-	cout << fixed << setprecision(3) << "FPS calculado: " << calcularFPS() << endl;
+		glfwSetWindowTitle(window, titulo);
+			  
+		contFPS = 0;
+		intervaloFPS = 0;
+	}
 }
 
 /*	Rotacao eixo Y
@@ -217,7 +207,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	if (action == GLFW_PRESS)
 		switch (key) {	
 			case GLFW_KEY_ESCAPE  	: 	glfwSetWindowShouldClose(window, true);
-										exibirFPS();
 										break;
 			case GLFW_KEY_LEFT		: 	moveu = RT_LEFT;
 										break;
@@ -305,7 +294,6 @@ static GLFWwindow* initGLFW(char* nameWin, int w, int h) {
 /* ************************************************************************* */
 
 static void GLFW_MainLoop(GLFWwindow* window) {
-	double lastFPS = 0.0, intervaloFPS = 0.0;
 	while (!glfwWindowShouldClose(window)) {
 		double now = glfwGetTime();
 		
@@ -319,7 +307,6 @@ static void GLFW_MainLoop(GLFWwindow* window) {
 	
 
    		if (ellapsed > 1.0f / 60.0f) {//intervalo de atualizacao da tela
-		//if (ellapsed > 1e-4) {//intervalo de atualizacao da tela
 			last = now;
 			
 			display(window);
@@ -332,17 +319,8 @@ static void GLFW_MainLoop(GLFWwindow* window) {
 			
 		}
 
-		if (intervaloFPS > 1.0f) {// Passou 1 segundo
-			lastFPS = now;
-			char titulo [50];
-			titulo [49] = '\0';
-			snprintf (titulo, 49, "%s - [FPS: %3.0u]", RT_APP, contFPS );
-
-			glfwSetWindowTitle(window, titulo);
-				  
-			contFPS = 0;
-			intervaloFPS = 0;
-		}
+		exibirFPS(now, lastFPS, intervaloFPS, contFPS, window);
+		
         glfwPollEvents();
     }
 }
@@ -357,7 +335,7 @@ int main(int argc, char *argv[]) {
 
     GLFWwindow* window;
 
-    window = initGLFW(argv[0], winWidth, winHeight);
+    window = initGLFW(RT_APP, winWidth, winHeight);
 
     initGL(window);
 

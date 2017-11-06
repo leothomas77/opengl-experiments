@@ -1,41 +1,54 @@
-# Projeto  - Implementacao do Raycasting
-## Tarefas
-- [x] definir a plataforma de desenvolvimento Linux/Windows/Mac
-- [x] preparar o ambiente de desenvolvimento
-### Marco I - ambiente funcionando
-- [x] definir a cena
-- [x] implementacao do algoritmo sem recursão
-- [x] renderizar esferas (imagem salva em arquivo)
-- [ ] implementar shader (abortado)
-- [x] desenhar cena na janela GLFW
-### Marco II - esfera desenhada
-- [x] redefinir a cena I - ponto de vista, cores e dimensões, reposicionamentos
-- [x] renderizar plano
-- [x] implementar phong - objeto solido
-- [ ] renderizar poligon - (abortado)
-### Marco III - especular + difusa implementada
-- [x] revisar phong - objeto solido
-- [x] implementar recursao
-- [x] implementar reflexao
-- [x] redefinir a cena II - reposicionamentos para visualizar melhor o efeito 
-- [x] implementar transmissao
-- [x] revisar transmissao
-- [x] implementar sombra - problema com 2 planos
-- [x] implementar segunda fonte de luz - problema com 2 planos
-### Marco IV - reflexão e transmissão implementados
-- [x] interagir com programa
-- [x] preparar matrizes
-- [x] movimentar camera
-- [x] movimentar camera - melhoria
-- [x] movimentar objeto 
-### Marco V - movimento da câmera implementado
-- [x] revisao codigo
-- [x] calculo FPS
-- [ ] preparar apresentação e documentação para entrega
-### Entrega final 01/11/2017 no moodle (prorrogada para ajustes)
-- [x] rotação programática de câmera no eixo Y
-- [x] ajuste no phong (bug na inversão de sinal)
-- [x] calcular fps
-- [x] corrigir refração e reflexão total interna
-### Entrega final 08/11/2017 no moodle
+# Projeto 1 - Implementacao do Raycasting
+## Descrição da Cena
+Um plano de chão, dois pontos de luz, um conjunto de 5 esferas flutuando. Uma esfera vermelha ao centro.
+
+Pelo menos uma esfera reflexiva
+
+Pelo menos uma esfera translúcida com material refratário vidro (índice 1.5)
+
+A câmera em movimento de rotação em relação ao eixo Y com uma esfera ao centro, dando a sensação de corpos em órbita da esfera central
+## Arquivos
+```
+raytracing
+├─ README.md - instruções do programa - você está este arquivo :)
+├─ ETAPAS.md - etapas de desenvolvimento do programa
+├─ objetos.h - definição das classes do programa
+├─ globals.h - variáveis globais
+├─ main.cpp - programa principal
+├─ raycasting.h - definição das funções do raycasting
+├─ raycasting.cpp - função recursiva para traçar raios e cálculo da cor
+├─ Makefile.linux64 - makefile para Linux
+├─ Makefile.MacOS - makefile para Mac
+├─ makelinux.sh - script para compilação Linux
+└─ makemac.sh - script para compilação Mac
+```
+## Compilação
+Para Linux
+```
+./makelinux.sh
+```
+Para MacOS
+```
+./makemac.sh
+```
+##Utilizando o programa
+Para executar o programa
+```
+./main
+```
+Aparecerá a quantidade de FPS na barra superior da janela do programa
+
+Para ligar desligar fontes de luz
+
+Teclar L ou l. Serão ligados e desligados os pontos de luz em uma sequência programada
+
+Para selecionar uma esfera
+
+Digitar um número de 0 a 5
+
+Para movimentar uma esfera
+
+Utilizar uma das setas direcionais Left, Right, Up e Down
+
+OBS: esta opção não se mostrou performática. Tem que dar toques contínuos para funcionar
 

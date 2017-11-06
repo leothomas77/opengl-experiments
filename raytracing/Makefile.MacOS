@@ -5,8 +5,8 @@ CXX		= g++
 CC		= gcc
 
 # flags for C++ compiler:
-CFLAGS		= -g -Wno-deprecated  
-CXXFLAGS	= -g -Wno-deprecated  
+CFLAGS		= -g -Wno-deprecated  -O2
+CXXFLAGS	= -g -Wno-deprecated  -O2
 
 # libraries to link with:
 

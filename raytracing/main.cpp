@@ -27,12 +27,12 @@ void criarObjetos() {
 	cout << "Criando objetos da cena" << endl;
 	
 	PontoDeLuz luz1;
-	luz1.posicao = vec3(8.0f, 40.0f, 30.0f);
+	luz1.posicao = vec3(8.0f, 10.0f, 10.0f);
 	luz1.corRGB = vec3(1.0f, 1.0f, 1.0f);
 	luz1.estado = DESLIGADA;
 
 	PontoDeLuz luz2;
-	luz2.posicao = vec3(-8.0f, 40.0f, 30.0f);
+	luz2.posicao = vec3(-8.0f, 10.0f, 10.0f);
 	luz2.corRGB = vec3(1.0f, 1.0f, 1.0f);
 	luz2.estado = LIGADA;	
 	

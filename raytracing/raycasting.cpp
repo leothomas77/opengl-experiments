@@ -190,13 +190,12 @@ vec3 calcularContribuicoesLuzes(vector<PontoDeLuz> pontosDeLuz, vec3 vertice, ve
         if (pontosDeLuz.at(k).estado == LIGADA) {
             luzesLigadas++;
             vec3 direcaoLuz = normalize(pontosDeLuz.at(k).posicao - vertice);
-            float decaimentoLuz = 1 / length(direcaoLuz);
             vec3 difusaEspecular = 
                 calcularDifusa(direcaoLuz, normal, difusa) +
                 calcularEspecular(direcao, direcaoLuz, vertice, normal, especular, expoente);
-            r += decaimentoLuz * difusaEspecular.r;
-            g += decaimentoLuz * difusaEspecular.g;
-            b += decaimentoLuz * difusaEspecular.b;
+            r += difusaEspecular.r;
+            g += difusaEspecular.g;
+            b += difusaEspecular.b;
 
         }
     }

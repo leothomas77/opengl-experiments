@@ -84,7 +84,7 @@ void exibirFPS(double now, double &lastFPS, double &intervaloFPS, unsigned &cont
 		lastFPS = now;
 		char titulo [50];
 		titulo [49] = '\0';
-		snprintf (titulo, 49, "%s - [FPS: %3.0u]", RT_APP, contFPS );
+		snprintf (titulo, 49, "[FPS: %3.0u] - %s", contFPS, RT_APP);
 
 		glfwSetWindowTitle(window, titulo);
 			  
@@ -105,7 +105,7 @@ vec3 rotacaoY(vec3 ponto, float anguloY) {
 }
 
 void display(GLFWwindow* window) {
-	anguloY += PASSO_CAMERA;
+	//anguloY += PASSO_CAMERA;
 
 	mat4 model = mat4(1.0f);
 	model = translate(mat4(1.0f), vec3(0.0f, 0.0f, 1.0f));
@@ -193,7 +193,6 @@ static void error_callback(int error, const char* description) {
 static void window_size_callback(GLFWwindow* window, int width, int height) {
     winWidth  = width;
 	winHeight = height; 
-	aspect = winWidth / winHeight;
 	
 	glViewport(0, 0, width, height);
 }
@@ -335,7 +334,7 @@ int main(int argc, char *argv[]) {
 
     GLFWwindow* window;
 
-    window = initGLFW(RT_APP, winWidth, winHeight);
+    window = initGLFW(titulo, winWidth, winHeight);
 
     initGL(window);
 

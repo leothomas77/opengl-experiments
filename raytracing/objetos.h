@@ -39,12 +39,11 @@ struct PontoDeLuz {
 };
 
 struct Superficie {
-//    vec3 corRGB; 
-    vec3 ambienteRGB = vec3(0.1, 0.1, 0.1);
-    vec3 especularRGB = vec3(1.0, 1.0, 1.0);
-    vec3 difusaRGB = vec3(0.8, 0.8, 0.8);
-    unsigned expoente = 38;
-    TipoSuperficie tipoSuperficie = solida;
+    vec3 ambienteRGB;
+    vec3 especularRGB;
+    vec3 difusaRGB;
+    unsigned expoente;
+    TipoSuperficie tipoSuperficie;
 };
 
 struct IntersecaoObjeto {
@@ -61,7 +60,11 @@ class ObjetoImplicito {
  public: 
     Superficie superficie;  
     ObjetoImplicito(){
-        //superficie.corRGB = vec3(0,0,0);
+        this->superficie.ambienteRGB = vec3(0.1, 0.1, 0.1);
+        this->superficie.especularRGB = vec3(1.0, 1.0, 1.0);
+        this->superficie.difusaRGB = vec3(0.8, 0.8, 0.8);
+        this->superficie.expoente = 38;
+        this->superficie.tipoSuperficie = solida;
     };
     void setSuperficie(vec3 difusa, vec3 especular) {
         this->superficie.especularRGB = especular;
@@ -111,9 +114,14 @@ public:
 class Plano: public ObjetoImplicito {
 public:
     
-    vec3 p0 = vec3(0,0,0);
-    vec3 normal = vec3(0,0,0);
-    float d = 0;
+    vec3 p0;
+    vec3 normal;
+    float d;
+    Plano() {
+        this->p0 = vec3(0,0,0);
+        this->normal = vec3(0,0,0);
+        this->d = 0.0f;
+    }
     Plano(const vec3 p0, vec3 normal, float d) {
         this->p0 = p0;
         this->normal = normal;

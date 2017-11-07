@@ -33,7 +33,7 @@ using namespace glm;
 #define REFRACAO_VIDRO 1.5f //indice de refracao do vidro
 #define REFRACAO_AR 1.0f
 #define DESVIO 0.001f
-#define SOMBREAMENTO 0.30f
+#define SOMBREAMENTO 0.5f
 
 int nanoToMili(double nanoseconds) {
     return (int)(nanoseconds*0x431BDE82)>>18;
@@ -92,13 +92,9 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
         //cout << "Objeto espelhamento" << objeto->superficie.espelhamento << endl;
         //cout << "Recursoes" << objeto->superficie.espelhamento << endl;
         if (nivel < MAX_RECURSOES) {
-            cor = objeto->superficie.difusaRGB; //cor de partida (nunca pode ser zero)
-            
-            bool temSombra = calcularSombras(vertice, normal, pontosDeLuz, objetos, objeto);
-            if (temSombra) {
-
-                cor *= SOMBREAMENTO; //cor nao pode ser negativa
-                
+            unsigned quantSombras = calcularSombras(vertice, normal, pontosDeLuz, objetos, objeto);
+            if (quantSombras > 0) {
+               cor = objeto->superficie.difusaRGB - quantSombras * SOMBREAMENTO;
             } else if (objeto->superficie.tipoSuperficie == reflexiva) { 
                 //cout << "refl" << endl;
                 vec3 raioRefletido = normalize(reflect(direcao, normal));
@@ -107,21 +103,9 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
                 cor = corRefletida;
             } else if (objeto->superficie.tipoSuperficie == refrataria) {
                 //cout << "refr" << endl;
-                vec3 corRefratada = vec3(0.0f, 0.0f, 0.0f);
-
-                vec3 desvio = normal * DESVIO;
                 vec3 verticeRefracao, raioRefratado;
-                float cosi = dot(direcao, normal);
-                if (cosi < 0) {
-                    raioRefratado = calcularRaioRefratado(direcao, normal, REFRACAO_AR, REFRACAO_VIDRO, cosi);
-                    verticeRefracao =  vertice - desvio;
-                } else {
-                    raioRefratado = calcularRaioRefratado(direcao, normal, REFRACAO_AR, REFRACAO_VIDRO, cosi);
-                    verticeRefracao = vertice + desvio;
-                }
-                corRefratada = tracarRaio(verticeRefracao , normalize(raioRefratado), objetos, pontosDeLuz, nivel);
-                
-                cor =  corRefratada;
+                raioRefratado = calcularRaioRefratado(vertice, direcao, normal, REFRACAO_AR, REFRACAO_VIDRO, verticeRefracao);
+                cor = tracarRaio(verticeRefracao , normalize(raioRefratado), objetos, pontosDeLuz, nivel);
             } else {
                 //cout << "phong" << endl;
                 cor = calcularContribuicoesLuzes(pontosDeLuz, vertice, normal, direcao, objeto);
@@ -147,19 +131,22 @@ vec3 calcularEspecular(vec3 direcao, vec3 direcaoLuz, vec3 vertice, vec3 normal,
     return especularRGB * (float)pow(omega, expoente);
 }
 
-vec3 calcularRaioRefratado(vec3 direcao, vec3 normal, float n1, float n2, float cosi) { 
+vec3 calcularRaioRefratado(vec3 vertice, vec3 direcao, vec3 normal, float n1, float n2, vec3 &verticeRefracao) { 
     float etai, etat; 
+    float cosi = dot(direcao, normal);
     //cout << "Raio refratado cosi=" << cosi << endl;
     if (cosi > 0.0f) { // raio dentro -> fora
         //cout << "Raio refratado saiu" << endl;
         etai = n2;
         etat = n1;
         normal = -1.0f * normal; 
+        verticeRefracao = vertice + normal * DESVIO;
     } else { // raio raio fora -> dentro
         //cout << "Raio refratado entrou" << endl;
         etai = n1;
         etat = n2;
         cosi = -cosi; 
+        verticeRefracao =  vertice - normal * DESVIO;
     } 
     float eta = etai / etat; 
     float k = 1 - eta * eta * (1 - cosi * cosi); 
@@ -170,10 +157,6 @@ vec3 calcularRaioRefratado(vec3 direcao, vec3 normal, float n1, float n2, float 
         return eta * direcao + (eta * cosi - sqrtf(k)) * normal;
     }
 
-}
-
-vec3 calcularDirecaoLuz(vec3 vertice, vec3 posicaoLuz) {
-    return normalize(posicaoLuz - vertice);
 }
 
 vec3 calcularContribuicoesLuzes(vector<PontoDeLuz> pontosDeLuz, vec3 vertice, vec3 normal, vec3 direcao, ObjetoImplicito* objeto) {
@@ -207,21 +190,20 @@ vec3 calcularContribuicoesLuzes(vector<PontoDeLuz> pontosDeLuz, vec3 vertice, ve
 /*
 Verifica na cena se do ponto tocado ao ponto de luz existe intersecao com algum outro objeto da cena
 */
-bool calcularSombras(vec3 vertice, vec3 normal, vector<PontoDeLuz> pontosDeLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado) {
+unsigned calcularSombras(vec3 vertice, vec3 normal, vector<PontoDeLuz> pontosDeLuz, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objetoTocado) {
+    unsigned contSombras = 0;
     for (unsigned k = 0; k < pontosDeLuz.size(); k++) {
         if (pontosDeLuz.at(k).estado == LIGADA) {
-            vec3 raioObjetoLuz = normalize(pontosDeLuz.at(k).posicao - vertice);
-            float distanciaLuz = length(raioObjetoLuz);
-            float t = INFINITO;
-            for (unsigned i = 0; i < objetos.size() && objetos.at(i) != objetoTocado; i++) {
+            for (unsigned i = 0; i < objetos.size(); i++) {
                 float t0 = INFINITO, t1 = INFINITO;
-                if (objetos.at(i)->intersecao(vertice + normal * DESVIO, raioObjetoLuz, t0, t1) && objetos.at(i) != objetoTocado) {
-                    return true;
+                vec3 raioObjetoLuz = normalize(pontosDeLuz.at(k).posicao - vertice);
+                if (objetos.at(i)->intersecao(vertice + normal * DESVIO, raioObjetoLuz, t0, t1)) {
+                    ++contSombras;
                 }
             }
         }
     }
-    return false;
+    return contSombras;
 }
 
 unsigned obterEstadoLuz(vector<PontoDeLuz> pontosDeLuz) {

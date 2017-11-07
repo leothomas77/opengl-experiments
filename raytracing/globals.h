@@ -13,8 +13,8 @@
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 #endif
 #define RT_APP "Raycasting v1.0 - Leonardo Thomas"
-#define RT_WIDTH 400
-#define RT_HEIGHT 400
+#define RT_WIDTH 100
+#define RT_HEIGHT 100
 
 using namespace std;
 using namespace glm;
@@ -37,10 +37,8 @@ vector<ObjetoImplicito*> objetos;
 vector<PontoDeLuz> pontosDeLuz;
 unsigned estadoLuz = 2;//LUZ_12
 unsigned int winWidth 	= RT_WIDTH, winHeight 	= RT_HEIGHT;
-double aspect = RT_WIDTH / double(RT_HEIGHT);
-
-//C[alculo do FPS
+//Calculo do FPS
 unsigned contFPS = 0;
 double lastFPS = 0.0, intervaloFPS = 0.0;
-
+char  titulo[50] = RT_APP;
 #endif //__RTGLOBALS__	

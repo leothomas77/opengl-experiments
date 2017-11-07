@@ -32,31 +32,8 @@ using namespace glm;
 #define MAX_RECURSOES	4
 #define REFRACAO_VIDRO 1.5f //indice de refracao do vidro
 #define REFRACAO_AR 1.0f
-#define DESVIO 0.001f
-#define SOMBREAMENTO 0.5f
-
-int nanoToMili(double nanoseconds) {
-    return (int)(nanoseconds*0x431BDE82)>>18;
-}
-
-float interceptarObjetos(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, ObjetoImplicito* objeto) {
-    float t = INFINITO;
-    for(unsigned int i = 0; i < objetos.size(); i++) {
-        float t1 = INFINITO;
-        float t0 = INFINITO; 
-        if (objetos.at(i)->intersecao(origem, direcao, t0, t1)) {
-            if (t0 < 0) {
-                t0 = t1;
-            }
-            if (t0 < t) {
-                t = t0;
-                objeto = objetos.at(i);
-                //cout << "interceptou" << endl;
-            }
-        } 
-    }
-    return t;
-}
+#define DESVIO 0.0003f
+#define SOMBREAMENTO 0.10f
 
 vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vector<PontoDeLuz> pontosDeLuz, unsigned int nivel) {
     float t = INFINITO;
@@ -82,7 +59,6 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
     }
 
     //cout << "Objeto " << objeto << endl;      
-
     if (objeto != NULL) {
         vertice = origem + (direcao * t);
         normal = objeto->calcularNormal(origem, direcao, t);
@@ -94,7 +70,7 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
         if (nivel < MAX_RECURSOES) {
             unsigned quantSombras = calcularSombras(vertice, normal, pontosDeLuz, objetos, objeto);
             if (quantSombras > 0) {
-               cor = objeto->superficie.difusaRGB - quantSombras * SOMBREAMENTO;
+               cor = objeto->superficie.ambienteRGB - quantSombras * SOMBREAMENTO;
             } else if (objeto->superficie.tipoSuperficie == reflexiva) { 
                 //cout << "refl" << endl;
                 vec3 raioRefletido = normalize(reflect(direcao, normal));
@@ -111,8 +87,6 @@ vec3 tracarRaio(vec3 origem, vec3 direcao, vector<ObjetoImplicito*> objetos, vec
                 cor = calcularContribuicoesLuzes(pontosDeLuz, vertice, normal, direcao, objeto);
                 //cout << "Retornou corSolida" << endl;
             }
-
- 
         }
     }   
     //cout << "Retorno cor (r: "<< cor.x*255 <<" g:"<< cor.y*255 << " b: "<< cor.z*255 << ")"<< endl;
@@ -194,10 +168,10 @@ unsigned calcularSombras(vec3 vertice, vec3 normal, vector<PontoDeLuz> pontosDeL
     unsigned contSombras = 0;
     for (unsigned k = 0; k < pontosDeLuz.size(); k++) {
         if (pontosDeLuz.at(k).estado == LIGADA) {
-            for (unsigned i = 0; i < objetos.size(); i++) {
+            for (unsigned i = 0; i < objetos.size() && objetos.at(i) != objetoTocado; i++) {
                 float t0 = INFINITO, t1 = INFINITO;
                 vec3 raioObjetoLuz = normalize(pontosDeLuz.at(k).posicao - vertice);
-                if (objetos.at(i)->intersecao(vertice + normal * DESVIO, raioObjetoLuz, t0, t1)) {
+                if (objetos.at(i)->intersecao(vertice + normal * DESVIO, raioObjetoLuz, t0, t1) && objetos.at(i) != objetoTocado) {
                     ++contSombras;
                 }
             }

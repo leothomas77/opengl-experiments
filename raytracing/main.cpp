@@ -49,7 +49,8 @@ void criarObjetos() {
 	Plano 	*plano1 = new Plano(vec3(0.0, -13.0, 0.0), vec3(0.0, 1.0, 0.0), 13.0);//chao
 	
 	plano1->superficie.difusaRGB = vec3(1.0, 1.0, 1.0);//chao
-		
+	plano1->superficie.ambienteRGB = vec3(0.5, 0.5, 0.5);//chao
+	
 	esfera1->superficie.tipoSuperficie = reflexiva;
 	esfera5->superficie.tipoSuperficie = refrataria;
 	
@@ -105,7 +106,7 @@ vec3 rotacaoY(vec3 ponto, float anguloY) {
 }
 
 void display(GLFWwindow* window) {
-	//anguloY += PASSO_CAMERA;
+	anguloY += PASSO_CAMERA;
 
 	mat4 model = mat4(1.0f);
 	model = translate(mat4(1.0f), vec3(0.0f, 0.0f, 1.0f));

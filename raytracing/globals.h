@@ -13,8 +13,8 @@
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 #endif
 #define RT_APP "Raycasting v1.0 - Leonardo Thomas"
-#define RT_WIDTH 100
-#define RT_HEIGHT 100
+#define RT_WIDTH 400
+#define RT_HEIGHT 400
 
 using namespace std;
 using namespace glm;

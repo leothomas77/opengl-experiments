@@ -1,3 +1,5 @@
 /bin
 **/*.o
 **/raytracing/main
+.DS_Store
+raytracing/.DS_Store

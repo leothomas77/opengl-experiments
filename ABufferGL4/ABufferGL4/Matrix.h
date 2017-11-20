@@ -275,7 +275,7 @@ struct Mat4 {
 	///
 	static Mat4<T> reflection(const Vector4<T> &plane) {
 		Mat4<T> res;
-		res.setReflection(v);
+		res.setReflection(plane);
 		return res;
 	}
 	void setReflection(const Vector4<T> &plane) {

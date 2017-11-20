@@ -5,8 +5,8 @@ CXX		= g++
 CC		= gcc
 
 # flags for C++ compiler:
-CFLAGS		= -g -Wno-deprecated  
-CXXFLAGS	= -g -Wno-deprecated  
+CFLAGS		= -g -Wno-deprecated  -O2
+CXXFLAGS	= -g -Wno-deprecated  -O2
 
 # libraries to link with:
 
@@ -16,7 +16,7 @@ LIB_PATH 		=	-L/usr/local/lib
 GL_LDFLAGS 		=	-framework OpenGL -lGLEW
 GLFW_LDFLAGS 	=	-lglfw3	
 GLUT_LDFLAGS 	=	-framework GLUT
-MACOS_LDFLAGS	=   	-framework CoreVideo -framework Cocoa -framework IOKit
+MACOS_LDFLAGS	=   -framework CoreVideo -framework Cocoa -framework IOKit
 ASSIMP_LDFLAGS 	=	-lassimp
 
 OBJFILES 	=	initShaders.o
@@ -31,16 +31,8 @@ OBJFILES 	=	initShaders.o
 	$(CXX) -o $*.o -c $(CXXFLAGS) $(INC_PATH) $*.cpp
 
 # ***********************************************************************************
-all:	glfwBasic drawCube load3DModel
+all:	load3DModel
 
-glfwBasic:	glfwBasic.o
-	@echo "Linking ...."
-	g++ -o $@ $^ $(LIB_PATH) $(GL_LDFLAGS) $(GLFW_LDFLAGS) $(MACOS_LDFLAGS)
-	
-drawCube:	 $(OBJFILES) drawCube.o
-	@echo "Linking ...."
-	$(CXX) $^ -o $@ $(LIB_PATH) $(GL_LDFLAGS) $(GLFW_LDFLAGS) $(MACOS_LDFLAGS)
-		
 load3DModel:	$(OBJFILES) load3DModel.o
 	@echo "Linking ...."
 	$(CXX) $^ -o $@ $(LIB_PATH) $(GL_LDFLAGS) $(GLFW_LDFLAGS) $(ASSIMP_LDFLAGS) $(MACOS_LDFLAGS)

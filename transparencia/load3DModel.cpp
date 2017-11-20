@@ -32,10 +32,20 @@
 
 using namespace std;
 
+#define ABUFFER_SIZE	8
+
 GLuint 	shaderAmbient,
 		shaderGouraud,
 		shaderPhong,
+		shaderLimpaABuffer,
 		shader;
+//ABuffer VBOs (pABufferUseTextures==0)
+GLuint abufferID=0;
+GLuint abufferIdxID=0;
+//ABuffer global memory addresses
+GLuint64EXT abufferGPUAddress;
+GLuint64EXT abufferCounterGPUAddress;
+		
 GLuint 	axisVBO[3];
 GLuint 	meshVBO[3];
 GLuint 	meshSize;
@@ -129,17 +139,15 @@ int traverseScene(	const aiScene *sc, const aiNode* nd) {
 
 			for(unsigned int i = 0; i < face->mNumIndices; i++) {
 				int index = face->mIndices[i];
-//				if(mesh->mColors[0] != NULL) {
-					vboColors.push_back(0.5);
-					vboColors.push_back(0.5);
-					vboColors.push_back(1.0);
-					vboColors.push_back(0.3); //habilita transparencia
-//					}
+				vboColors.push_back(0.5);
+				vboColors.push_back(0.5);
+				vboColors.push_back(1.0);
+				vboColors.push_back(0.3); //habilita transparencia
 				if(mesh->mNormals != NULL) {
 					vboNormals.push_back(mesh->mNormals[index].x);
 					vboNormals.push_back(mesh->mNormals[index].y);
 					vboNormals.push_back(mesh->mNormals[index].z);
-					}
+				}
 				vboVertices.push_back(mesh->mVertices[index].x);
 				vboVertices.push_back(mesh->mVertices[index].y);
 				vboVertices.push_back(mesh->mVertices[index].z);
@@ -237,6 +245,31 @@ GLfloat colors[]  = { 	1.0, 1.0, 1.0, 1.0,
 					lines, GL_STATIC_DRAW);
 	
 }
+				
+void createABuffer() {
+
+		//Abuffer
+		if(!abufferID) {
+			glGenBuffers(1, &abufferID);
+		}
+		glBindBuffer(GL_ARRAY_BUFFER, abufferID);
+
+		glBufferData(GL_ARRAY_BUFFER, winWidth * winHeight * sizeof(float) * 4 * ABUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
+		glMakeBufferResidentNV(GL_ARRAY_BUFFER, GL_READ_WRITE);
+		glGetBufferParameterui64vNV(GL_ARRAY_BUFFER, GL_BUFFER_GPU_ADDRESS_NV, &abufferGPUAddress); 
+		
+
+		//AbufferIdx
+		if(!abufferIdxID) {
+			glGenBuffers(1, &abufferIdxID);
+		}
+		glBindBuffer(GL_ARRAY_BUFFER, abufferIdxID);
+		
+		glBufferData(GL_ARRAY_BUFFER, winWidth * winHeight * sizeof(uint), NULL, GL_DYNAMIC_DRAW);
+		glMakeBufferResidentNV(GL_ARRAY_BUFFER, GL_READ_WRITE);
+		glGetBufferParameterui64vNV(GL_ARRAY_BUFFER, GL_BUFFER_GPU_ADDRESS_NV, &abufferCounterGPUAddress); 
+
+}
 		
 /// ***********************************************************************
 /// **
@@ -330,10 +363,14 @@ void display(void) {
 	glm::mat4 normalMat		= glm::transpose(glm::inverse(ModelMat));
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable (GL_BLEND); 
+	//glEnable (GL_BLEND); 
 	//glEnable (GL_DEPTH_TEST); //Não utilizado ainda
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	//Limpa A-Buffer
+	glUseProgram(shaderLimpaABuffer);
+	abufferGPUAddress = glGetUniformLocation(shaderLimpaABuffer, "d_abuffer");
+	abufferCounterGPUAddress = glGetUniformLocation(shaderLimpaABuffer, "d_abufferIdx");
 	
 	glUseProgram(shader);
 		
@@ -392,6 +429,7 @@ void initShaders(void) {
     shaderAmbient 	= InitShader( "basicShader.vert", 	"basicShader.frag" );
     shaderGouraud 	= InitShader( "Gouraud.vert", 		"Gouraud.frag" );
     shaderPhong 	= InitShader( "Phong.vert", 		"Phong.frag" );
+    shaderLimpaABuffer 	= InitShader( "limpaABuffer.vert", 		"limpaABuffer.frag" );
 
     shader 			= shaderAmbient;
 }
@@ -567,14 +605,16 @@ int main(int argc, char *argv[]) {
 
     GLFWwindow* window;
 
-	//char meshFilename[] = "bunny.obj";
-	char meshFilename[] = "dragon.obj";
+	char meshFilename[] = "bunny.obj";
+	//char meshFilename[] = "dragon.obj";
 
     window = initGLFW(argv[0], winWidth, winHeight);
 
     initASSIMP();
     initGL(window);
 	initShaders();
+
+	createABuffer();
 
     if (argc > 1)
 	    loadMesh(argv[1]);

@@ -150,7 +150,7 @@ int main() {
 
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	glEnable( GL_BLEND );
-	// glDisable (GL_DEPTH_TEST);
+	glDisable (GL_DEPTH_TEST);
 
 	glClearColor( 0.2, 0.2, 0.2, 1.0 );
 	glEnable( GL_CULL_FACE ); // cull face

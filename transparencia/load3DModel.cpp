@@ -33,6 +33,9 @@
 using namespace std;
 
 #define ABUFFER_SIZE	8
+#ifndef GL_SHADER_GLOBAL_ACCESS_BARRIER_BIT_NV
+#define GL_SHADER_GLOBAL_ACCESS_BARRIER_BIT_NV             0x00000010
+#endif
 
 GLuint 	shaderAmbient,
 		shaderGouraud,
@@ -40,11 +43,12 @@ GLuint 	shaderAmbient,
 		shaderLimpaABuffer,
 		shader;
 //ABuffer VBOs (pABufferUseTextures==0)
-GLuint abufferID=0;
-GLuint abufferIdxID=0;
+GLuint abuffer[2];
+GLuint vertexBufferName=0;
+
 //ABuffer global memory addresses
-GLuint64EXT abufferGPUAddress;
-GLuint64EXT abufferCounterGPUAddress;
+GLfloat abufferGPUAddress;
+GLuint abufferCounterGPUAddress;
 		
 GLuint 	axisVBO[3];
 GLuint 	meshVBO[3];
@@ -248,26 +252,38 @@ GLfloat colors[]  = { 	1.0, 1.0, 1.0, 1.0,
 				
 void createABuffer() {
 
-		//Abuffer
-		if(!abufferID) {
-			glGenBuffers(1, &abufferID);
-		}
-		glBindBuffer(GL_ARRAY_BUFFER, abufferID);
+		const GLfloat quadVArray[] = {
+		-1.0f, -1.0f, 0.0f, 1.0f,
+		1.0f, -1.0f, 0.0f, 1.0f,
+		-1.0f, 1.0f, 0.0f, 1.0f,    
+		1.0f, -1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 0.0f, 1.0f,
+		-1.0f, 1.0f, 0.0f, 1.0f  
+		};
 
-		glBufferData(GL_ARRAY_BUFFER, winWidth * winHeight * sizeof(float) * 4 * ABUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
-		glMakeBufferResidentNV(GL_ARRAY_BUFFER, GL_READ_WRITE);
-		glGetBufferParameterui64vNV(GL_ARRAY_BUFFER, GL_BUFFER_GPU_ADDRESS_NV, &abufferGPUAddress); 
+		glGenBuffers (1, &vertexBufferName);
+		glBindBuffer (GL_ARRAY_BUFFER, vertexBufferName);
+		glBufferData (GL_ARRAY_BUFFER, sizeof(quadVArray), quadVArray, GL_STATIC_DRAW);
 		
 
+		//Abuffer
+		glGenBuffers(2, abuffer);
+
+
+		cout << "Abuffer 1" << endl;
+		glBindBuffer(GL_ARRAY_BUFFER, abuffer[0]);
+		glBufferData(GL_ARRAY_BUFFER, winWidth * winHeight * sizeof(float) * 4 * ABUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
+		// glMakeBufferResident(GL_ARRAY_BUFFER, GL_READ_WRITE);
+		// glGetBufferParameter(GL_ARRAY_BUFFER, GL_BUFFER_GPU_ADDRESS, &abufferGPUAddress); 
+		
 		//AbufferIdx
-		if(!abufferIdxID) {
-			glGenBuffers(1, &abufferIdxID);
-		}
-		glBindBuffer(GL_ARRAY_BUFFER, abufferIdxID);
+		cout << "Abuffer 2" << endl;
+		glBindBuffer(GL_ARRAY_BUFFER, abuffer[1]);
 		
 		glBufferData(GL_ARRAY_BUFFER, winWidth * winHeight * sizeof(uint), NULL, GL_DYNAMIC_DRAW);
-		glMakeBufferResidentNV(GL_ARRAY_BUFFER, GL_READ_WRITE);
-		glGetBufferParameterui64vNV(GL_ARRAY_BUFFER, GL_BUFFER_GPU_ADDRESS_NV, &abufferCounterGPUAddress); 
+		// glMakeBufferResidentNV(GL_ARRAY_BUFFER, GL_READ_WRITE);
+		// glGetBufferParameterui64vNV(GL_ARRAY_BUFFER, GL_BUFFER_GPU_ADDRESS_NV, &abufferCounterGPUAddress); 
+		cout << "Abuffer end" << endl;
 
 }
 		
@@ -305,7 +321,7 @@ int attrV, attrC;
 
 void drawMesh() {
 
-int attrV, attrC, attrN; 
+	int attrV, attrC, attrN; 
 	
 	glBindBuffer(GL_ARRAY_BUFFER, meshVBO[0]); 		
 	attrV = glGetAttribLocation(shader, "aPosition");
@@ -331,6 +347,29 @@ int attrV, attrC, attrN;
 	glBindBuffer(GL_ARRAY_BUFFER, 0); 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
 }
+
+
+void drawQuad(GLuint prog) {
+	int attrV;
+	glUseProgram (prog);
+	attrV = glGetAttribLocation(prog, "vertexPos");
+	glVertexAttribPointer(attrV, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray (attrV);
+
+	glBindBuffer (GL_ARRAY_BUFFER, vertexBufferName);
+
+	//glVertexAttribPointer (glGetAttribLocation(prog, "vertexPos"), 4, GL_FLOAT, GL_FALSE,
+						   //sizeof(GLfloat)*4, 0);
+
+	glDrawArrays(GL_TRIANGLES, 0, 24);
+
+	glDisableVertexAttribArray(attrV);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0); 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 	
+}
+
+
 		
 /// ***********************************************************************
 /// **
@@ -367,14 +406,46 @@ void display(void) {
 	//glEnable (GL_DEPTH_TEST); //Não utilizado ainda
 	//glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	//endereco da variavel
+	int loc;
+
 	//Limpa A-Buffer
-	glUseProgram(shaderLimpaABuffer);
-	abufferGPUAddress = glGetUniformLocation(shaderLimpaABuffer, "d_abuffer");
-	abufferCounterGPUAddress = glGetUniformLocation(shaderLimpaABuffer, "d_abufferIdx");
+	bool useABuffer = true;
+
+	if (useABuffer) {
+		cout << "useABuffer" << endl;
+		glUseProgram(shaderLimpaABuffer);
+		loc = glGetAttribLocation(shaderLimpaABuffer, "d_abuffer");
+		cout << "d_abuffer" << endl;
+		//glAttrib4fv(loc, winWidth * winHeight * sizeof(float) * 4 * ABUFFER_SIZE, &abufferGPUAddress);
+		glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(loc);
+
+		glDisableVertexAttribArray(loc);
+		glBindBuffer(GL_ARRAY_BUFFER, 0); 
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
+		
+
+		loc = glGetAttribLocation(shaderLimpaABuffer, "d_abufferIdx");
+		//cout << "d_abufferIdx" << endl;
+		//glAttrib1uiv(loc, winWidth * winHeight * sizeof(GLuint), &abufferCounterGPUAddress);
+		glVertexAttribPointer(loc, 1, GL_UNSIGNED_INT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(loc);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0); 
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
+		
+		drawQuad(shaderLimpaABuffer);
+		//cout << "drawQuad" << endl;
+
+		//glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+		//cout << "glMemoryBarrier" << endl;
+	}
 	
+	/*
 	glUseProgram(shader);
 		
-	int loc = glGetUniformLocation( shader, "uMVP" );
+	loc = glGetUniformLocation( shader, "uMVP" );
 	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(MVP));
 
 	if ( (shader == shaderGouraud) || ( shader == shaderPhong) ) {
@@ -387,10 +458,12 @@ void display(void) {
 		loc = glGetUniformLocation( shader, "uCamPos" );
 		glUniform3fv(loc, 1, glm::value_ptr(camPos));
 		}
+	*/	
+  	//drawAxis();
 
-  	drawAxis();
+	//drawMesh();
+	 
 
- 	drawMesh();
 }
 
 /* ************************************************************************* */
@@ -415,8 +488,18 @@ void initGL(GLFWwindow* window) {
 
 	glPointSize(3.0);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_NORMALIZE);
+	//glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_NORMALIZE);
+
+	//Desabilita descarte das faces de tras para manter todos os fragmentos
+	glDisable(GL_CULL_FACE);
+	//Desabilita depth test
+	glDisable(GL_DEPTH_TEST);
+	//Desabilita stencil test
+	glDisable(GL_STENCIL_TEST);
+	//Desabilita blending
+	glDisable(GL_BLEND);
+
 }
 
 /* ************************************************************************* */
@@ -614,8 +697,8 @@ int main(int argc, char *argv[]) {
     initGL(window);
 	initShaders();
 
-	createABuffer();
-
+	//createABuffer();
+	cout << "Buffers criados" << endl;
     if (argc > 1)
 	    loadMesh(argv[1]);
 	else

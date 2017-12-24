@@ -44,52 +44,60 @@ GLuint InitShader(const char* vShaderFile, const char* fShaderFile) {
     GLuint program = glCreateProgram();
     
     for ( int i = 0; i < 2; ++i ) {
-	Shader& s = shaders[i];
-	s.source = readShaderSource( s.filename );
-	if ( shaders[i].source == NULL ) {
-	    std::cerr << "Failed to read " << s.filename << std::endl;
-	    exit( EXIT_FAILURE );
-	}
+	
+		Shader& s = shaders[i];
+		s.source = readShaderSource( s.filename );
+		std::cout << "Shader " << s.filename << " lido " << std::endl;
+		if ( shaders[i].source == NULL ) {
+			std::cerr << "Failed to read " << s.filename << std::endl;
+			exit( EXIT_FAILURE );
+		}
 
-	GLuint shader = glCreateShader( s.type );
-	glShaderSource( shader, 1, (const GLchar**) &s.source, NULL );
-	glCompileShader( shader );
+		GLuint shader = glCreateShader( s.type );
+		glShaderSource( shader, 1, (const GLchar**) &s.source, NULL );
+		glCompileShader( shader );
 
-	GLint  compiled;
-	glGetShaderiv( shader, GL_COMPILE_STATUS, &compiled );
-	if ( !compiled ) {
-	    std::cerr << s.filename << " failed to compile:" << std::endl;
-	    GLint  logSize;
-	    glGetShaderiv( shader, GL_INFO_LOG_LENGTH, &logSize );
-	    char* logMsg = new char[logSize];
-	    glGetShaderInfoLog( shader, logSize, NULL, logMsg );
-	    std::cerr << logMsg << std::endl;
-	    delete [] logMsg;
+		GLint  compiled;
+		glGetShaderiv( shader, GL_COMPILE_STATUS, &compiled );
+		if ( !compiled ) {
+			std::cerr << s.filename << " failed to compile:" << std::endl;
+			GLint  logSize;
+			glGetShaderiv( shader, GL_INFO_LOG_LENGTH, &logSize );
+			char* logMsg = new char[logSize];
+			glGetShaderInfoLog( shader, logSize, NULL, logMsg );
+			std::cerr << logMsg << std::endl;
+			delete [] logMsg;
 
-	    exit( EXIT_FAILURE );
-	}
+			exit( EXIT_FAILURE );
+		}
+		std::cout << "Shader " << s.filename << " compilado " << std::endl;
 
-	delete [] s.source;
+		delete [] s.source;
 
-	glAttachShader( program, shader );
-    }
+		glAttachShader( program, shader );
+		std::cout << "Shader " << s.filename << " atachado " << std::endl;
+		}
 
     /* link  and error check */
     glLinkProgram(program);
 
-    GLint  linked;
-    glGetProgramiv( program, GL_LINK_STATUS, &linked );
-    if ( !linked ) {
-	std::cerr << "Shader program failed to link" << std::endl;
-	GLint  logSize;
-	glGetProgramiv( program, GL_INFO_LOG_LENGTH, &logSize);
-	char* logMsg = new char[logSize];
-	glGetProgramInfoLog( program, logSize, NULL, logMsg );
-	std::cerr << logMsg << std::endl;
-	delete [] logMsg;
+	GLint  linked;
+	std::cout << "aqui 1" << std::endl;
 
-	exit( EXIT_FAILURE );
+    glGetProgramiv( program, GL_LINK_STATUS, &linked );
+ 	std::cout << "aqui 2" << std::endl;
+   if ( !linked ) {
+		std::cout << "Shader program failed to link" << std::endl;
+		GLint  logSize;
+		glGetProgramiv( program, GL_INFO_LOG_LENGTH, &logSize);
+		char* logMsg = new char[logSize];
+		glGetProgramInfoLog( program, logSize, NULL, logMsg );
+		std::cout << logMsg << std::endl;
+		delete [] logMsg;
+
+		exit( EXIT_FAILURE );
     }
+	std::cout << "Shader linkado " << std::endl;
 
     return program;
 }

@@ -1,0 +1,4 @@
+﻿LINK : warning LNK4098: defaultlib 'MSVCRT' conflita com uso de outras bibliotecas; use /NODEFAULTLIB:library
+LINK : warning LNK4098: defaultlib 'LIBCMT' conflita com uso de outras bibliotecas; use /NODEFAULTLIB:library
+glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' nÒo foi encontrado 'glew32s.lib(glew.obj)' ou no 'C:\Users\gita\git\opengl-experiments\helloGLFW\HelloGLFW\Debug\vc120.pdb'; vinculando objeto quando quando sem nenhuma informaþÒo de depuraþÒo
+  NormalMapping.vcxproj -> C:\Users\gita\git\opengl-experiments\helloGLFW\HelloGLFW\Debug\NormalMapping.exe

@@ -1,0 +1,11 @@
+GL_LOG_FILE log. local time Thu Dec 28 21:39:10 2017
+
+starting GLFW 3.2.1 Win32 WGL EGL VisualC
+renderer: Intel(R) HD Graphics 520
+version: 4.4.0 - Build 21.20.16.4599
+creating shader from test_vs.glsl...
+shader compiled. index 1
+creating shader from test_fs.glsl...
+shader compiled. index 2
+created programme 3. attaching shaders 1 and 2...
+program 3 GL_VALIDATE_STATUS = GL_TRUE

@@ -40,20 +40,5 @@
     <ClInclude Include="..\..\..\antons_opengl_tutorials_book\20_normal_mapping\stb_image.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-    <ClInclude Include="resource1.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\antons_opengl_tutorials_book\20_normal_mapping\test_fs.glsl">
-      <Filter>Arquivos de Recurso</Filter>
-    </None>
-    <None Include="..\..\..\antons_opengl_tutorials_book\20_normal_mapping\test_vs.glsl">
-      <Filter>Arquivos de Recurso</Filter>
-    </None>
-    <None Include="..\..\..\antons_opengl_tutorials_book\20_normal_mapping\suzanne.obj" />
   </ItemGroup>
 </Project>

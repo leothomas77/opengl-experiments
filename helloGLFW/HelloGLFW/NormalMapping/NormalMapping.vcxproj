@@ -138,13 +138,6 @@
     <ClInclude Include="..\..\..\antons_opengl_tutorials_book\20_normal_mapping\gl_utils.h" />
     <ClInclude Include="..\..\..\antons_opengl_tutorials_book\20_normal_mapping\maths_funcs.h" />
     <ClInclude Include="..\..\..\antons_opengl_tutorials_book\20_normal_mapping\stb_image.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="resource1.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\antons_opengl_tutorials_book\20_normal_mapping\suzanne.obj" />
-    <None Include="..\..\..\antons_opengl_tutorials_book\20_normal_mapping\test_fs.glsl" />
-    <None Include="..\..\..\antons_opengl_tutorials_book\20_normal_mapping\test_vs.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{f804c847-8dd4-4c9f-9967-ed3eeeb41e7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DXUT">
+      <UniqueIdentifier>{44d34bd3-aa3d-49d9-af20-2d58d990e08e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\AOIT">
+      <UniqueIdentifier>{00c341e6-b704-4a7f-a234-fe010d0292d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\A-Buffer">
+      <UniqueIdentifier>{74afb04f-6fd7-4c5b-9370-94bf5ca64f27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\AVSM">
+      <UniqueIdentifier>{8707383e-b7a7-4247-b0e9-38f9d21d5e8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Particle">
+      <UniqueIdentifier>{6f53fb9b-999f-4406-9392-1827e4663bee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Hair">
+      <UniqueIdentifier>{298232b8-58de-4c4d-a453-31479bae07b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Debug">
+      <UniqueIdentifier>{738ee1cb-5eaa-4fcb-b3cd-ce8ee58afc68}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Common.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="ConstantBuffers.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="AOIT.hlsl">
+      <Filter>Shaders\AOIT</Filter>
+    </None>
+    <None Include="FragmentList.hlsl">
+      <Filter>Shaders\A-Buffer</Filter>
+    </None>
+    <None Include="ListTexture.hlsl">
+      <Filter>Shaders\AVSM</Filter>
+    </None>
+    <None Include="fps.hlsl">
+      <Filter>Shaders\Debug</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DXUT\Core\DXUT.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="DXUT\Optional\DXUTcamera.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="DXUT\Core\DXUTDevice11.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="DXUT\Core\DXUTDevice9.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="DXUT\Optional\DXUTgui.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="DXUT\Core\DXUTmisc.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="DXUT\Optional\DXUTres.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="DXUT\Optional\DXUTsettingsdlg.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="DXUT\Optional\SDKmesh.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="DXUT\Optional\SDKmisc.cpp">
+      <Filter>DXUT</Filter>
+    </ClCompile>
+    <ClCompile Include="App.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Hair.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MathUtils.cpp" />
+    <ClCompile Include="ParticleSystem.cpp" />
+    <ClCompile Include="Partitions.cpp" />
+    <ClCompile Include="ShaderUtils.cpp" />
+    <ClCompile Include="Texture2D.cpp" />
+    <ClCompile Include="fps.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DXUT\Core\DXUT.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="DXUT\Optional\DXUTcamera.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="DXUT\Core\DXUTDevice11.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="DXUT\Core\DXUTDevice9.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="DXUT\Optional\DXUTgui.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="DXUT\Core\DXUTmisc.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="DXUT\Optional\DXUTres.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="DXUT\Optional\DXUTsettingsdlg.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="DXUT\Optional\SDKmesh.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="DXUT\Optional\SDKmisc.h">
+      <Filter>DXUT</Filter>
+    </ClInclude>
+    <ClInclude Include="App.h" />
+    <ClInclude Include="AppShaderConstants.h" />
+    <ClInclude Include="AVSM_def.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="cyHairFile.h" />
+    <ClInclude Include="Hair.h" />
+    <ClInclude Include="ListTexture.h" />
+    <ClInclude Include="MathUtils.h" />
+    <ClInclude Include="ParticleSystem.h" />
+    <ClInclude Include="Partitions.h" />
+    <ClInclude Include="ShaderUtils.h" />
+    <ClInclude Include="Texture2D.h" />
+    <ClInclude Include="Stats.h" />
+    <ClInclude Include="Debug.h" />
+    <ClInclude Include="fps.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Rendering.hlsl">
+      <Filter>Shaders</Filter>
+    </CustomBuild>
+    <CustomBuild Include="AOIT_Resolve.hlsl">
+      <Filter>Shaders\AOIT</Filter>
+    </CustomBuild>
+    <CustomBuild Include="ABuffer_Resolve.hlsl">
+      <Filter>Shaders\A-Buffer</Filter>
+    </CustomBuild>
+    <CustomBuild Include="AVSM_Resolve.hlsl">
+      <Filter>Shaders\AVSM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="AVSM.hlsl">
+      <Filter>Shaders\AVSM</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Particle.hlsl">
+      <Filter>Shaders\Particle</Filter>
+    </CustomBuild>
+    <CustomBuild Include="StandardCameraHairRender.hlsl">
+      <Filter>Shaders\Hair</Filter>
+    </CustomBuild>
+    <CustomBuild Include="ShadowHairCapture.hlsl">
+      <Filter>Shaders\Hair</Filter>
+    </CustomBuild>
+    <CustomBuild Include="CameraHairCapture.hlsl">
+      <Filter>Shaders\Hair</Filter>
+    </CustomBuild>
+    <CustomBuild Include="HairCommon.hlsl">
+      <Filter>Shaders\Hair</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Debug.hlsl">
+      <Filter>Shaders\Debug</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Stats.hlsl">
+      <Filter>Shaders\Debug</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>
